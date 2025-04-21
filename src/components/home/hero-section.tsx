@@ -4,44 +4,39 @@ import { Link } from 'react-router-dom';
 
 export function HeroSection() {
   return (
-    <div className="relative bg-gradient-to-r from-primary/90 to-primary/70 text-white">
-      {/* Background image with overlay */}
-      <div 
-        className="absolute inset-0 z-0 bg-cover bg-center"
-        style={{ 
-          backgroundImage: 'url("https://source.unsplash.com/random/1920x1080/?ajmer,india,city")', 
-          opacity: 0.3 
-        }}
-      />
-      
-      <div className="container mx-auto px-4 py-16 md:py-24 relative z-10">
-        <div className="max-w-3xl">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-            आपकी आवाज़, हमारा प्रयास
-            <span className="block text-2xl md:text-3xl mt-2 font-normal">
-              Report & Track Civic Issues in Ajmer
-            </span>
-          </h1>
-          
-          <p className="text-lg md:text-xl opacity-90 mb-8 max-w-2xl">
-            Submit complaints about roads, garbage, water, electricity, and other civic issues. Track their status in real-time and help make Ajmer a better place to live.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Button asChild size="lg" className="bg-white text-primary hover:bg-gray-100">
-              <Link to="/submit-complaint">
-                Report an Issue
-              </Link>
-            </Button>
-            
-            <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white/10">
-              <Link to="/complaints">
-                Track My Complaints
-              </Link>
-            </Button>
-          </div>
+    <section className="relative min-h-[70vh] flex flex-col justify-center items-center overflow-hidden bg-gradient-to-r from-primary/90 to-primary/60 text-white">
+      {/* Gradient overlay */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src="https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?auto=format&fit=crop&w=1600&q=80"
+          alt="Ajmer City"
+          className="w-full h-full object-cover brightness-75"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+      </div>
+      <div className="container relative z-10 mx-auto px-4 py-24 flex flex-col items-center text-center animate-fade-in">
+        <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-4 drop-shadow-lg">
+          आपकी आवाज़, हमारा प्रयास
+        </h1>
+        <p className="text-2xl md:text-3xl text-white/80 mb-8 font-medium drop-shadow-md">
+          Report &amp; Track Civic Issues in Ajmer
+        </p>
+        <p className="text-lg md:text-xl opacity-90 mb-10 max-w-2xl mx-auto">
+          Submit complaints about roads, garbage, water, electricity, and more. Track their status in real-time and help make Ajmer a better place to live.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Button asChild size="lg" className="bg-white text-primary hover:scale-105 duration-150 hover:bg-gray-100 px-8 py-4 font-bold shadow-xl">
+            <Link to="/submit-complaint">
+              Report an Issue
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white/10 px-8 py-4 font-bold shadow-xl">
+            <Link to="/complaints">
+              Track My Complaints
+            </Link>
+          </Button>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
