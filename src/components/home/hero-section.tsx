@@ -12,7 +12,7 @@ export function HeroSection() {
           alt="Ajmer City"
           className="w-full h-full object-cover brightness-75"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
       </div>
       <div className="container relative z-10 mx-auto px-4 py-24 flex flex-col items-center text-center animate-fade-in">
         <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-4 drop-shadow-lg">
@@ -25,12 +25,12 @@ export function HeroSection() {
           Submit complaints about roads, garbage, water, electricity, and more. Track their status in real-time and help make Ajmer a better place to live.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button asChild size="lg" className="bg-white text-primary hover:scale-105 duration-150 hover:bg-gray-100 px-8 py-4 font-bold shadow-xl">
+          <Button asChild size="lg" className="bg-white text-primary hover:bg-gray-100 hover:scale-105 duration-150 px-8 py-6 font-bold shadow-xl border-2 border-white text-lg">
             <Link to="/submit-complaint">
               Report an Issue
             </Link>
           </Button>
-          <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white/10 px-8 py-4 font-bold shadow-xl">
+          <Button asChild variant="outline" size="lg" className="bg-transparent border-2 border-white text-white hover:bg-white/20 px-8 py-6 font-bold shadow-xl text-lg">
             <Link to="/complaints">
               Track My Complaints
             </Link>

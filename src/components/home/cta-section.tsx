@@ -17,13 +17,13 @@ export function CTASection() {
                 Help make Ajmer a better place by reporting civic issues. Your voice matters, and together we can create positive change.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button asChild size="lg" className="bg-primary text-white hover:scale-105 duration-150 hover:bg-primary/90 font-bold px-6">
+                <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white hover:scale-105 duration-150 font-bold px-8 py-6 text-lg shadow-lg">
                   <Link to="/submit-complaint" className="flex items-center">
                     Report Now
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>
-                <Button asChild variant="outline" size="lg" className="border-primary text-primary hover:bg-primary/10 font-bold px-6">
+                <Button asChild variant="outline" size="lg" className="border-2 border-primary text-primary hover:bg-primary/10 font-bold px-8 py-6 text-lg">
                   <Link to="/how-it-works">
                     Learn More
                   </Link>
