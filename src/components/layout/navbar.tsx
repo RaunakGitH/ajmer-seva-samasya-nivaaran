@@ -1,9 +1,9 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, User, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { 
   Dialog, 
   DialogContent, 
@@ -20,7 +20,7 @@ export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <nav className="bg-white shadow-sm">
+    <nav className="bg-white shadow-sm dark:bg-background">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
@@ -49,6 +49,7 @@ export function Navbar() {
               Contact
             </Link>
             <LanguageSwitcher />
+            <ThemeToggle />
             
             <Dialog>
               <DialogTrigger asChild>
@@ -90,6 +91,7 @@ export function Navbar() {
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
             <LanguageSwitcher />
+            <ThemeToggle />
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="ml-2 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
