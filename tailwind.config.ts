@@ -25,7 +25,7 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: 'hsl(var(--primary))',
+					DEFAULT: '#8B5CF6', // Vibrant purple for primary actions
 					foreground: 'hsl(var(--primary-foreground))'
 				},
 				secondary: {
