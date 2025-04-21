@@ -9,6 +9,11 @@ import ComplaintSuccess from "./pages/ComplaintSuccess";
 import Complaints from "./pages/Complaints";
 import AdminLogin from "./pages/AdminLogin";
 import NotFound from "./pages/NotFound";
+import AdminLayout from "@/components/admin/AdminLayout";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
+import AdminComplaints from "@/pages/admin/AdminComplaints";
+import AdminUsers from "@/pages/admin/AdminUsers";
+import AdminSettings from "@/pages/admin/AdminSettings";
 
 const queryClient = new QueryClient();
 
@@ -44,16 +49,43 @@ const App = () => (
             path="/admin/dashboard"
             element={
               <AdminRoute>
-                <div className="min-h-screen flex items-center justify-center bg-gray-100">
-                  <div className="text-center">
-                    <h1 className="text-2xl font-bold mb-2">Admin Dashboard</h1>
-                    <p className="text-gray-600">This would be the admin dashboard UI</p>
-                  </div>
-                </div>
+                <AdminLayout>
+                  <AdminDashboard />
+                </AdminLayout>
               </AdminRoute>
             }
           />
-          
+          <Route
+            path="/admin/complaints"
+            element={
+              <AdminRoute>
+                <AdminLayout>
+                  <AdminComplaints />
+                </AdminLayout>
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <AdminRoute>
+                <AdminLayout>
+                  <AdminUsers />
+                </AdminLayout>
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/settings"
+            element={
+              <AdminRoute>
+                <AdminLayout>
+                  <AdminSettings />
+                </AdminLayout>
+              </AdminRoute>
+            }
+          />
+
           {/* Catch-all Route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
