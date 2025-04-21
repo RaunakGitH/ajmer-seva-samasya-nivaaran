@@ -1,5 +1,5 @@
 
-import { Complaints } from "./Complaints";
+import Complaints from "./Complaints";
 
 export default function CitizenDashboard() {
   return (

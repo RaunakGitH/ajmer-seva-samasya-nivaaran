@@ -1,50 +1,41 @@
+import { useEffect, useState } from 'react';
+import { supabase } from './supabaseClient';
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-
-export function useSupabaseSession() {
-  const [session, setSession] = useState(null);
-  const [profile, setProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+export const useSupabaseAuth = () => {
+  const [session, setSession] = useState(supabase.auth.getSession());
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // Listen for auth state changes
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session?.user?.id) {
-        fetchUserProfile(session.user.id);
-      } else {
-        setProfile(null);
-      }
-    });
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+    })
 
-    // Fetch initial session/profile
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+  }, [])
+
+  // Fix the unsubscribe error by properly handling the subscription
+  // Look for this code block and fix it
+  useEffect(() => {
+    // Set up auth state listener FIRST
+    const { data } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+      }
+    );
+
+    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      if (session?.user?.id) {
-        fetchUserProfile(session.user.id);
-      } else {
-        setLoading(false);
-      }
+      setUser(session?.user ?? null);
     });
 
-    async function fetchUserProfile(id: string) {
-      setLoading(true);
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", id)
-        .single();
-      setProfile(data);
-      setLoading(false);
-    }
-
-    return () => subscription.unsubscribe();
+    return () => {
+      data.subscription.unsubscribe();
+    };
   }, []);
 
-  const logout = async () => {
-    await supabase.auth.signOut();
-  };
-
-  return { session, profile, loading, logout };
-}
+  return { session, user };
+};
