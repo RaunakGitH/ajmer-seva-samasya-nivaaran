@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Send, ArrowLeft } from 'lucide-react';
@@ -30,6 +29,8 @@ import {
   StepTitle,
   Stepper,
 } from "@/components/ui/stepper";
+import { useSupabaseSession } from "@/utils/supabaseAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Category {
   id: string;
@@ -46,6 +47,7 @@ interface Location {
 
 const SubmitComplaint = () => {
   const navigate = useNavigate();
+  const { session } = useSupabaseSession();
   const [activeStep, setActiveStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -104,18 +106,57 @@ const SubmitComplaint = () => {
     try {
       setIsSubmitting(true);
       setSubmitError(null);
-      
-      // In a real application, you would upload files to Firebase Storage
-      // and submit the complaint data to Firestore
-      
-      // Simulating an API call with a delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Redirect to complaint tracking page with success message
+
+      if (!session?.user) {
+        setSubmitError("Please log in to submit your complaint.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // 1. Upload files, if any, to Supabase Storage "complaints-media"
+      let mediaUrls: string[] = [];
+      if (files.length > 0) {
+        for (const file of files) {
+          const fileExt = file.name.split('.').pop();
+          const newFileName = `${session.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+          const { data, error } = await supabase.storage
+            .from("complaints-media")
+            .upload(newFileName, file);
+
+          if (error) {
+            throw new Error("Failed to upload attachment: " + error.message);
+          }
+          // Build the public URL for the file
+          const { data: publicUrlData } = supabase.storage
+            .from("complaints-media")
+            .getPublicUrl(newFileName);
+
+          mediaUrls.push(publicUrlData.publicUrl);
+        }
+      }
+
+      // 2. Store complaint in "complaints" table
+      const { error: insertError } = await supabase
+        .from("complaints")
+        .insert({
+          user_id: session.user.id,
+          category: category?.name ?? "",
+          description,
+          location_lat: location?.lat ?? null,
+          location_lng: location?.lng ?? null,
+          media_urls: mediaUrls.length > 0 ? mediaUrls : null,
+          status: "Pending",
+          // created_at and updated_at are handled by defaults
+        });
+
+      if (insertError) {
+        throw new Error("Failed to submit complaint: " + insertError.message);
+      }
+
       navigate('/complaint-success');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting complaint:', error);
-      setSubmitError('There was an error submitting your complaint. Please try again.');
+      setSubmitError(error.message ?? 'There was an error submitting your complaint. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
