@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader, Google, Phone, Mail } from "lucide-react";
+import { Loader, Mail, Phone } from "lucide-react";
 import { useSupabaseSession } from "@/utils/supabaseAuth";
 
 type AuthMode = "login" | "signup";
@@ -82,7 +81,7 @@ export default function Auth() {
         <CardContent>
           <div className="mb-4 flex justify-center space-x-2">
             <Button variant={tab === "google" ? "default" : "outline"} onClick={() => setTab("google")}>
-              <Google className="mr-2 h-4 w-4" /> Google
+              Google
             </Button>
             <Button variant={tab === "phone" ? "default" : "outline"} onClick={() => setTab("phone")}>
               <Phone className="mr-2 h-4 w-4" /> Phone
@@ -93,7 +92,7 @@ export default function Auth() {
           </div>
           {tab === "google" && (
             <Button className="w-full mb-4" onClick={signInWithGoogle} disabled={loading}>
-              {loading ? <Loader className="animate-spin h-4 w-4" /> : <Google className="mr-2 h-4 w-4" />} Continue with Google
+              {loading ? <Loader className="animate-spin h-4 w-4" /> : "Continue with Google"}
             </Button>
           )}
           {tab === "phone" && (
