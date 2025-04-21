@@ -7,8 +7,14 @@ import { HowItWorks } from '@/components/home/how-it-works';
 import { StatsSection } from '@/components/home/stats-section';
 import { Testimonials } from '@/components/home/testimonials';
 import { CTASection } from '@/components/home/cta-section';
+import { useEffect } from 'react';
 
 const Index = () => {
+  // Log when the component mounts to help with debugging
+  useEffect(() => {
+    console.log('Index page mounted successfully');
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
