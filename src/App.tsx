@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,7 +10,7 @@ import ComplaintSuccess from "./pages/ComplaintSuccess";
 import Complaints from "./pages/Complaints";
 import AdminLogin from "./pages/AdminLogin";
 import NotFound from "./pages/NotFound";
-import AdminLayout from "@/components/admin/AdminLayout";
+import { AdminLayout } from "@/components/admin/AdminLayout";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import AdminComplaints from "@/pages/admin/AdminComplaints";
 import AdminUsers from "@/pages/admin/AdminUsers";
