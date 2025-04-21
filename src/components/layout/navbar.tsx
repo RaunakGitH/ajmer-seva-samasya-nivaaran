@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, User, Phone } from 'lucide-react';
@@ -16,9 +17,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ProfileMenu } from "@/components/ProfileMenu";
+import { useSupabaseSession } from "@/utils/supabaseAuth";
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { session } = useSupabaseSession();
 
   return (
     <nav className="bg-white shadow-sm dark:bg-background">
@@ -51,13 +54,24 @@ export function Navbar() {
             </Link>
             <LanguageSwitcher />
             <ThemeToggle />
-            <ProfileMenu />
+            {session ? (
+              <ProfileMenu />
+            ) : (
+              <Button asChild variant="default" size="sm">
+                <Link to="/auth">Login</Link>
+              </Button>
+            )}
           </div>
 
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
             <LanguageSwitcher />
             <ThemeToggle />
+            {!session && (
+              <Button asChild variant="default" size="sm" className="ml-2">
+                <Link to="/auth">Login</Link>
+              </Button>
+            )}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="ml-2 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-primary hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
@@ -89,6 +103,7 @@ export function Navbar() {
             <Link to="/contact" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary">
               Contact
             </Link>
+            {session && <ProfileMenu />}
           </div>
         </div>
       )}
