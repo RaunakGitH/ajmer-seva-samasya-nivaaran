@@ -11,10 +11,12 @@ import Complaints from "./pages/Complaints";
 import AdminLogin from "./pages/AdminLogin";
 import NotFound from "./pages/NotFound";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import AdminDashboard from "@/pages/admin/AdminDashboard";
-import AdminComplaints from "@/pages/admin/AdminComplaints";
+import AdminDashboard from "@/pages/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminSettings from "@/pages/admin/AdminSettings";
+import CitizenDashboard from "@/pages/CitizenDashboard";
+import StaffDashboard from "@/pages/StaffDashboard";
+import Auth from "@/pages/Auth";
 
 const queryClient = new QueryClient();
 
@@ -38,54 +40,30 @@ const App = () => (
         <Routes>
           {/* Citizen Portal Routes */}
           <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/citizen-dashboard" element={<CitizenDashboard />} />
+          <Route path="/staff-dashboard" element={<StaffDashboard />} />
           <Route path="/submit-complaint" element={<SubmitComplaint />} />
           <Route path="/complaint-success" element={<ComplaintSuccess />} />
           <Route path="/complaints" element={<Complaints />} />
           
           {/* Admin Portal Routes */}
           <Route path="/admin/login" element={<AdminLogin />} />
-          
-          {/* Protected Admin Routes */}
-          <Route
-            path="/admin/dashboard"
-            element={
-              <AdminRoute>
-                <AdminLayout>
-                  <AdminDashboard />
-                </AdminLayout>
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/complaints"
-            element={
-              <AdminRoute>
-                <AdminLayout>
-                  <AdminComplaints />
-                </AdminLayout>
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/users"
-            element={
-              <AdminRoute>
-                <AdminLayout>
-                  <AdminUsers />
-                </AdminLayout>
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/settings"
-            element={
-              <AdminRoute>
-                <AdminLayout>
-                  <AdminSettings />
-                </AdminLayout>
-              </AdminRoute>
-            }
-          />
+          <Route path="/admin/dashboard" element={
+            <AdminLayout>
+              <AdminDashboard />
+            </AdminLayout>
+          } />
+          <Route path="/admin/users" element={
+            <AdminLayout>
+              <AdminUsers />
+            </AdminLayout>
+          } />
+          <Route path="/admin/settings" element={
+            <AdminLayout>
+              <AdminSettings />
+            </AdminLayout>
+          } />
 
           {/* Catch-all Route */}
           <Route path="*" element={<NotFound />} />

@@ -15,6 +15,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ProfileMenu } from "@/components/ProfileMenu";
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -50,42 +51,7 @@ export function Navbar() {
             </Link>
             <LanguageSwitcher />
             <ThemeToggle />
-            
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="default">Login</Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Login to Samasya Seva</DialogTitle>
-                  <DialogDescription>
-                    Login with your Google account or phone number
-                  </DialogDescription>
-                </DialogHeader>
-                <Tabs defaultValue="google">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="google">Google</TabsTrigger>
-                    <TabsTrigger value="phone">Phone OTP</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="google" className="p-4 flex justify-center">
-                    <Button className="w-full" variant="outline">
-                      <User className="mr-2 h-4 w-4" />
-                      Continue with Google
-                    </Button>
-                  </TabsContent>
-                  <TabsContent value="phone" className="p-4 space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number</Label>
-                      <Input id="phone" placeholder="+91 123 456 7890" />
-                    </div>
-                    <Button className="w-full">
-                      <Phone className="mr-2 h-4 w-4" />
-                      Send OTP
-                    </Button>
-                  </TabsContent>
-                </Tabs>
-              </DialogContent>
-            </Dialog>
+            <ProfileMenu />
           </div>
 
           {/* Mobile menu button */}
@@ -123,7 +89,6 @@ export function Navbar() {
             <Link to="/contact" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary">
               Contact
             </Link>
-            <Button variant="default" className="w-full mt-2">Login</Button>
           </div>
         </div>
       )}
