@@ -11,15 +11,15 @@ export const useAllComplaints = () => {
   } = useQuery({
     queryKey: ["all-complaints"],
     queryFn: async () => {
+      // We need to properly specify the foreign keys for the nested query
+      // rather than using .eq() afterward, which doesn't work for this case
       const { data, error } = await supabase
         .from("complaints")
         .select(`
           *,
-          user_profile:profiles(id, full_name, email),
-          assigned_profile:profiles(id, full_name, email)
+          user_profile:profiles!user_id(id, full_name, email),
+          assigned_profile:profiles!assigned_to(id, full_name, email)
         `)
-        .eq("user_profile.id", "complaints.user_id")
-        .eq("assigned_profile.id", "complaints.assigned_to")
         .order("created_at", { ascending: false });
       
       if (error) throw error;
