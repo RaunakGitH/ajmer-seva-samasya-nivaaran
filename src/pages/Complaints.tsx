@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -49,6 +48,9 @@ interface ComplaintType {
   updated_at: string;
   media_urls?: string[] | null;
   location?: string; // For display purposes
+  progressPercent?: number; // Added this property to fix TypeScript errors
+  date?: string; // Added this property as it's used in the code
+  hasImage?: boolean; // Added this property as it might be used
 }
 
 const Complaints = () => {
@@ -58,7 +60,6 @@ const Complaints = () => {
   const { complaints, isLoading, error, refetch } = useUserComplaints();
   const { toast } = useToast();
   
-  // Show error toast if there's an error fetching complaints
   if (error) {
     toast({
       title: "Error fetching complaints",
@@ -67,15 +68,12 @@ const Complaints = () => {
     });
   }
 
-  // Transform Supabase complaints to the format needed for display
   const transformedComplaints: ComplaintType[] = complaints.map(complaint => {
-    // Calculate progress based on status
     let progressPercent = 0;
     if (complaint.status === 'Pending') progressPercent = 20;
     else if (complaint.status === 'In Progress') progressPercent = 60;
     else if (complaint.status === 'Resolved') progressPercent = 100;
 
-    // Generate location string from lat/lng or use a placeholder
     const locationString = complaint.location_lat && complaint.location_lng 
       ? `Near ${complaint.location_lat.toFixed(4)}, ${complaint.location_lng.toFixed(4)}`
       : 'Location not specified';
@@ -98,7 +96,6 @@ const Complaints = () => {
     };
   });
   
-  // Filter complaints based on search term and filters
   const filteredComplaints = transformedComplaints.filter(complaint => {
     const matchesSearch = 
       (complaint.title?.toLowerCase().includes(searchTerm.toLowerCase()) || '') || 
@@ -113,7 +110,6 @@ const Complaints = () => {
     return matchesSearch && matchesStatus && matchesCategory;
   });
   
-  // Group complaints by status for tabs
   const pendingComplaints = filteredComplaints.filter(c => c.status === 'Pending');
   const inProgressComplaints = filteredComplaints.filter(c => c.status === 'In Progress');
   const resolvedComplaints = filteredComplaints.filter(c => c.status === 'Resolved');
@@ -137,7 +133,6 @@ const Complaints = () => {
       }
     };
 
-    // Default status if not matched
     const status = complaint.status as keyof typeof statusConfig;
     const statusInfo = statusConfig[status] || statusConfig['Pending'];
     
