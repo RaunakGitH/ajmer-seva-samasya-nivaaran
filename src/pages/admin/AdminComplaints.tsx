@@ -1,8 +1,47 @@
 
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Table, TableBody, TableRow, TableCell, TableHead, TableHeader } from "@/components/ui/table";
+import { useState } from "react";
+import { 
+  Card, 
+  CardHeader, 
+  CardTitle, 
+  CardDescription, 
+  CardContent 
+} from "@/components/ui/card";
+import { 
+  Table, 
+  TableBody, 
+  TableRow, 
+  TableCell, 
+  TableHead, 
+  TableHeader 
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Search, Loader2 } from "lucide-react";
+import { useAllComplaints } from "@/hooks/useAllComplaints";
+import { format } from "date-fns";
 
 export default function AdminComplaints() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const { complaints, isLoading, error } = useAllComplaints();
+  
+  const filteredComplaints = complaints.filter(complaint => 
+    complaint.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    complaint.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    complaint.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (complaint.profiles?.full_name || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  
+  const getStatusBadgeColor = (status: string) => {
+    switch (status) {
+      case "Pending": return "bg-amber-500";
+      case "In Progress": return "bg-blue-500";
+      case "Resolved": return "bg-green-500";
+      default: return "bg-gray-500";
+    }
+  };
+  
   return (
     <div className="max-w-6xl mx-auto">
       <Card>
@@ -11,32 +50,64 @@ export default function AdminComplaints() {
           <CardDescription>View and resolve user complaints.</CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="flex mb-4">
+            <div className="relative flex-grow">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Input
+                placeholder="Search complaints..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+          
           <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>User</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created At</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell>123</TableCell>
-                  <TableCell>Jane Doe</TableCell>
-                  <TableCell>Open</TableCell>
-                  <TableCell>2024-04-11</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>124</TableCell>
-                  <TableCell>John Smith</TableCell>
-                  <TableCell>Resolved</TableCell>
-                  <TableCell>2024-04-10</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-            <div className="pt-6 text-gray-500 text-center text-sm">[List is a placeholder]</div>
+            {isLoading ? (
+              <div className="flex justify-center items-center py-10">
+                <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
+                <span>Loading complaints...</span>
+              </div>
+            ) : error ? (
+              <div className="text-center py-10 text-red-500">
+                Error loading complaints. Please try again.
+              </div>
+            ) : filteredComplaints.length === 0 ? (
+              <div className="text-center py-10">
+                No complaints found.
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>User</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Created At</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredComplaints.map((complaint) => (
+                    <TableRow key={complaint.id}>
+                      <TableCell className="font-mono text-xs">{complaint.id.substring(0, 8)}</TableCell>
+                      <TableCell>{complaint.profiles?.full_name || 'Unknown'}</TableCell>
+                      <TableCell>{complaint.category}</TableCell>
+                      <TableCell>
+                        <Badge className={`${getStatusBadgeColor(complaint.status)} text-white`}>
+                          {complaint.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{format(new Date(complaint.created_at), 'yyyy-MM-dd')}</TableCell>
+                      <TableCell>
+                        <Button size="sm" variant="outline">View Details</Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </div>
         </CardContent>
       </Card>

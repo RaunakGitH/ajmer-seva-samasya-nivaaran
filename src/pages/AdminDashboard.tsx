@@ -2,8 +2,34 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, BarChart3, FileText, Users } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAllComplaints } from "@/hooks/useAllComplaints";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function AdminDashboard() {
+  const { complaints } = useAllComplaints();
+  
+  // Calculate complaint statistics
+  const totalComplaints = complaints.length;
+  const resolvedComplaints = complaints.filter(c => c.status === "Resolved").length;
+  const pendingComplaints = complaints.filter(c => c.status === "Pending").length;
+  const resolutionRate = totalComplaints ? Math.round((resolvedComplaints / totalComplaints) * 100) : 0;
+  
+  // Fetch total users count
+  const { data: usersData } = useQuery({
+    queryKey: ["total-users"],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true });
+      
+      if (error) throw error;
+      return count ?? 0;
+    }
+  });
+  
+  const totalUsers = usersData || 0;
+  
   return (
     <main className="space-y-6">
       <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
@@ -16,9 +42,9 @@ export default function AdminDashboard() {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">120</div>
+            <div className="text-2xl font-bold">{totalComplaints}</div>
             <p className="text-xs text-muted-foreground">
-              +15% from last month
+              All submitted complaints
             </p>
           </CardContent>
         </Card>
@@ -29,9 +55,9 @@ export default function AdminDashboard() {
             <BarChart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">75</div>
+            <div className="text-2xl font-bold">{resolvedComplaints}</div>
             <p className="text-xs text-muted-foreground">
-              62.5% resolution rate
+              {resolutionRate}% resolution rate
             </p>
           </CardContent>
         </Card>
@@ -42,7 +68,7 @@ export default function AdminDashboard() {
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">45</div>
+            <div className="text-2xl font-bold">{pendingComplaints}</div>
             <p className="text-xs text-muted-foreground">
               Requiring attention
             </p>
@@ -55,9 +81,9 @@ export default function AdminDashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">240</div>
+            <div className="text-2xl font-bold">{totalUsers}</div>
             <p className="text-xs text-muted-foreground">
-              +12 this week
+              Registered users
             </p>
           </CardContent>
         </Card>
@@ -102,39 +128,58 @@ export default function AdminDashboard() {
         </Card>
       </div>
       
-      {/* Recent Activity */}
+      {/* Recent Activity - Show 5 most recent complaints */}
       <Card className="mt-6">
         <CardHeader>
           <CardTitle>Recent Activity</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center">
-              <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
-              <p className="text-sm">New complaint submitted by <span className="font-medium">Rahul Sharma</span></p>
-              <span className="ml-auto text-xs text-muted-foreground">2 hours ago</span>
+          {complaints.length === 0 ? (
+            <div className="text-center py-4 text-gray-500">No recent activity</div>
+          ) : (
+            <div className="space-y-4">
+              {complaints.slice(0, 5).map((complaint) => {
+                const activityColor = 
+                  complaint.status === "Resolved" ? "bg-green-500" :
+                  complaint.status === "In Progress" ? "bg-blue-500" :
+                  "bg-yellow-500";
+                
+                const timeAgo = getTimeAgo(new Date(complaint.created_at));
+                
+                return (
+                  <div key={complaint.id} className="flex items-center">
+                    <div className={`w-2 h-2 rounded-full ${activityColor} mr-2`}></div>
+                    <p className="text-sm">
+                      New complaint about <span className="font-medium">{complaint.category}</span> submitted
+                      {complaint.profiles?.full_name ? ` by ${complaint.profiles.full_name}` : ''}
+                    </p>
+                    <span className="ml-auto text-xs text-muted-foreground">{timeAgo}</span>
+                  </div>
+                );
+              })}
             </div>
-            
-            <div className="flex items-center">
-              <div className="w-2 h-2 rounded-full bg-blue-500 mr-2"></div>
-              <p className="text-sm">Complaint <span className="font-medium">#124</span> marked as resolved</p>
-              <span className="ml-auto text-xs text-muted-foreground">5 hours ago</span>
-            </div>
-            
-            <div className="flex items-center">
-              <div className="w-2 h-2 rounded-full bg-yellow-500 mr-2"></div>
-              <p className="text-sm">New user registration: <span className="font-medium">Priya Patel</span></p>
-              <span className="ml-auto text-xs text-muted-foreground">Yesterday</span>
-            </div>
-            
-            <div className="flex items-center">
-              <div className="w-2 h-2 rounded-full bg-purple-500 mr-2"></div>
-              <p className="text-sm">System maintenance completed</p>
-              <span className="ml-auto text-xs text-muted-foreground">2 days ago</span>
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     </main>
   );
+}
+
+// Helper function to display time in a human-readable format
+function getTimeAgo(date: Date): string {
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  
+  if (diffInSeconds < 60) return 'just now';
+  
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+  
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+  
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 7) return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+  
+  return date.toLocaleDateString();
 }
