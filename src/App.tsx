@@ -14,6 +14,7 @@ import { AdminLayout } from "@/components/admin/AdminLayout";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminSettings from "@/pages/admin/AdminSettings";
+import AdminComplaints from "@/pages/admin/AdminComplaints";
 import CitizenDashboard from "@/pages/CitizenDashboard";
 import StaffDashboard from "@/pages/StaffDashboard";
 import Auth from "@/pages/Auth";
@@ -50,19 +51,32 @@ const App = () => (
           {/* Admin Portal Routes */}
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={
-            <AdminLayout>
-              <AdminDashboard />
-            </AdminLayout>
+            <AdminRoute>
+              <AdminLayout>
+                <AdminDashboard />
+              </AdminLayout>
+            </AdminRoute>
           } />
           <Route path="/admin/users" element={
-            <AdminLayout>
-              <AdminUsers />
-            </AdminLayout>
+            <AdminRoute>
+              <AdminLayout>
+                <AdminUsers />
+              </AdminLayout>
+            </AdminRoute>
+          } />
+          <Route path="/admin/complaints" element={
+            <AdminRoute>
+              <AdminLayout>
+                <AdminComplaints />
+              </AdminLayout>
+            </AdminRoute>
           } />
           <Route path="/admin/settings" element={
-            <AdminLayout>
-              <AdminSettings />
-            </AdminLayout>
+            <AdminRoute>
+              <AdminLayout>
+                <AdminSettings />
+              </AdminLayout>
+            </AdminRoute>
           } />
 
           {/* Catch-all Route */}
