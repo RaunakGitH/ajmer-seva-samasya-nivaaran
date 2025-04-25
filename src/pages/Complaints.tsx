@@ -9,7 +9,8 @@ import {
   Plus, 
   Clock, 
   CheckCircle, 
-  AlertTriangle 
+  AlertTriangle,
+  Loader2
 } from 'lucide-react';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
@@ -33,124 +34,112 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
+import { useUserComplaints } from '@/hooks/useUserComplaints';
+import { useToast } from '@/hooks/use-toast';
 
-interface Complaint {
+interface ComplaintType {
   id: string;
-  title: string;
+  title?: string;
   category: string;
-  status: 'pending' | 'in_progress' | 'resolved' | 'rejected';
-  date: string;
-  location: string;
+  status: string;
   description: string;
-  progressPercent: number;
-  hasImage: boolean;
+  location_lat?: number;
+  location_lng?: number;
+  created_at: string;
+  updated_at: string;
+  media_urls?: string[] | null;
+  location?: string; // For display purposes
 }
 
 const Complaints = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const { complaints, isLoading, error, refetch } = useUserComplaints();
+  const { toast } = useToast();
   
-  // Mock data for complaints
-  const mockComplaints: Complaint[] = [
-    {
-      id: 'AJM123456',
-      title: 'Pothole on Civil Lines Road',
-      category: 'Road',
-      status: 'in_progress',
-      date: '2025-04-18',
-      location: 'Civil Lines, Ajmer',
-      description: 'Large pothole causing traffic issues and damage to vehicles',
-      progressPercent: 50,
-      hasImage: true
-    },
-    {
-      id: 'AJM234567',
-      title: 'Garbage not collected for a week',
-      category: 'Garbage',
-      status: 'pending',
-      date: '2025-04-20',
-      location: 'Vaishali Nagar, Ajmer',
-      description: 'The garbage dump has not been cleared for over a week causing foul smell',
-      progressPercent: 20,
-      hasImage: true
-    },
-    {
-      id: 'AJM345678',
-      title: 'Broken street light',
-      category: 'Electricity',
-      status: 'resolved',
-      date: '2025-04-15',
-      location: 'Station Road, Ajmer',
-      description: 'Street light not working causing safety issues at night',
-      progressPercent: 100,
-      hasImage: false
-    },
-    {
-      id: 'AJM456789',
-      title: 'Water leakage from pipeline',
-      category: 'Water',
-      status: 'in_progress',
-      date: '2025-04-17',
-      location: 'Adarsh Nagar, Ajmer',
-      description: 'Water pipeline leaking at the end of the street causing water wastage',
-      progressPercent: 70,
-      hasImage: true
-    },
-    {
-      id: 'AJM567890',
-      title: 'Illegal construction blocking road',
-      category: 'Property',
-      status: 'pending',
-      date: '2025-04-19',
-      location: 'Anasagar Circular Road, Ajmer',
-      description: 'Unauthorized construction blocking part of the road',
-      progressPercent: 10,
-      hasImage: false
-    }
-  ];
+  // Show error toast if there's an error fetching complaints
+  if (error) {
+    toast({
+      title: "Error fetching complaints",
+      description: "There was an error loading your complaints. Please try again.",
+      variant: "destructive"
+    });
+  }
+
+  // Transform Supabase complaints to the format needed for display
+  const transformedComplaints: ComplaintType[] = complaints.map(complaint => {
+    // Calculate progress based on status
+    let progressPercent = 0;
+    if (complaint.status === 'Pending') progressPercent = 20;
+    else if (complaint.status === 'In Progress') progressPercent = 60;
+    else if (complaint.status === 'Resolved') progressPercent = 100;
+
+    // Generate location string from lat/lng or use a placeholder
+    const locationString = complaint.location_lat && complaint.location_lng 
+      ? `Near ${complaint.location_lat.toFixed(4)}, ${complaint.location_lng.toFixed(4)}`
+      : 'Location not specified';
+
+    return {
+      id: complaint.id || 'Unknown ID',
+      title: `Complaint about ${complaint.category}`, // Generate title if not available
+      category: complaint.category || 'Uncategorized',
+      status: complaint.status || 'Pending',
+      date: new Date(complaint.created_at).toISOString().split('T')[0],
+      location: locationString,
+      description: complaint.description || 'No description provided',
+      progressPercent: progressPercent,
+      hasImage: complaint.media_urls && complaint.media_urls.length > 0,
+      created_at: complaint.created_at,
+      updated_at: complaint.updated_at,
+      media_urls: complaint.media_urls,
+      location_lat: complaint.location_lat,
+      location_lng: complaint.location_lng
+    };
+  });
   
   // Filter complaints based on search term and filters
-  const filteredComplaints = mockComplaints.filter(complaint => {
+  const filteredComplaints = transformedComplaints.filter(complaint => {
     const matchesSearch = 
-      complaint.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      (complaint.title?.toLowerCase().includes(searchTerm.toLowerCase()) || '') || 
       complaint.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      complaint.location.toLowerCase().includes(searchTerm.toLowerCase());
+      complaint.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      complaint.description.toLowerCase().includes(searchTerm.toLowerCase());
       
-    const matchesStatus = statusFilter === 'all' || complaint.status === statusFilter;
+    const matchesStatus = statusFilter === 'all' || 
+      complaint.status.replace(' ', '_').toLowerCase() === statusFilter;
     const matchesCategory = categoryFilter === 'all' || complaint.category === categoryFilter;
     
     return matchesSearch && matchesStatus && matchesCategory;
   });
   
   // Group complaints by status for tabs
-  const pendingComplaints = filteredComplaints.filter(c => c.status === 'pending');
-  const inProgressComplaints = filteredComplaints.filter(c => c.status === 'in_progress');
-  const resolvedComplaints = filteredComplaints.filter(c => c.status === 'resolved');
+  const pendingComplaints = filteredComplaints.filter(c => c.status === 'Pending');
+  const inProgressComplaints = filteredComplaints.filter(c => c.status === 'In Progress');
+  const resolvedComplaints = filteredComplaints.filter(c => c.status === 'Resolved');
   
-  const renderComplaintCard = (complaint: Complaint) => {
+  const renderComplaintCard = (complaint: ComplaintType) => {
     const statusConfig = {
-      pending: { 
+      'Pending': { 
         label: 'Pending Review', 
         color: 'bg-amber-500',
         icon: <Clock className="h-4 w-4 text-amber-500" />
       },
-      in_progress: { 
+      'In Progress': { 
         label: 'In Progress', 
         color: 'bg-blue-500',
         icon: <AlertTriangle className="h-4 w-4 text-blue-500" />
       },
-      resolved: { 
+      'Resolved': { 
         label: 'Resolved', 
         color: 'bg-green-500',
         icon: <CheckCircle className="h-4 w-4 text-green-500" />
-      },
-      rejected: { 
-        label: 'Rejected', 
-        color: 'bg-red-500',
-        icon: <AlertTriangle className="h-4 w-4 text-red-500" />
       }
     };
+
+    // Default status if not matched
+    const status = complaint.status as keyof typeof statusConfig;
+    const statusInfo = statusConfig[status] || statusConfig['Pending'];
     
     return (
       <Card key={complaint.id} className="mb-4">
@@ -161,7 +150,7 @@ const Complaints = () => {
               <CardDescription className="flex items-center mt-1">
                 <div className="flex items-center text-xs text-gray-500 mr-3">
                   <Calendar className="h-3 w-3 mr-1" />
-                  {new Date(complaint.date).toLocaleDateString()}
+                  {new Date(complaint.created_at).toLocaleDateString()}
                 </div>
                 <div className="flex items-center text-xs text-gray-500">
                   <MapPin className="h-3 w-3 mr-1" />
@@ -169,8 +158,8 @@ const Complaints = () => {
                 </div>
               </CardDescription>
             </div>
-            <Badge className={`${statusConfig[complaint.status].color} text-white`}>
-              {statusConfig[complaint.status].label}
+            <Badge className={`${statusInfo.color} text-white`}>
+              {statusInfo.label}
             </Badge>
           </div>
         </CardHeader>
@@ -178,8 +167,8 @@ const Complaints = () => {
           <div className="flex justify-between mb-2">
             <span className="text-sm text-gray-500">Status</span>
             <span className="text-sm font-medium flex items-center">
-              {statusConfig[complaint.status].icon}
-              <span className="ml-1">{statusConfig[complaint.status].label}</span>
+              {statusInfo.icon}
+              <span className="ml-1">{statusInfo.label}</span>
             </span>
           </div>
           
@@ -200,7 +189,7 @@ const Complaints = () => {
           <div className="text-sm text-gray-700 mb-4">{complaint.description}</div>
           
           <div className="flex justify-between text-xs text-gray-500">
-            <span>Complaint ID: {complaint.id}</span>
+            <span>Complaint ID: {complaint.id.substring(0, 8)}</span>
             <span>Category: {complaint.category}</span>
           </div>
         </CardContent>
@@ -211,7 +200,7 @@ const Complaints = () => {
             </Link>
           </Button>
           
-          {complaint.status === 'resolved' && (
+          {complaint.status === 'Resolved' && (
             <Button size="sm">
               Provide Feedback
             </Button>
@@ -267,7 +256,6 @@ const Complaints = () => {
                     <SelectItem value="pending">Pending</SelectItem>
                     <SelectItem value="in_progress">In Progress</SelectItem>
                     <SelectItem value="resolved">Resolved</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
                   </SelectContent>
                 </Select>
                 
@@ -285,76 +273,95 @@ const Complaints = () => {
                     <SelectItem value="Water">Water</SelectItem>
                     <SelectItem value="Electricity">Electricity</SelectItem>
                     <SelectItem value="Property">Property</SelectItem>
+                    <SelectItem value="Environment">Environment</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
           </div>
           
-          <Tabs defaultValue="all">
-            <TabsList className="w-full md:w-auto grid grid-cols-4 mb-6">
-              <TabsTrigger value="all">
-                All ({filteredComplaints.length})
-              </TabsTrigger>
-              <TabsTrigger value="pending">
-                Pending ({pendingComplaints.length})
-              </TabsTrigger>
-              <TabsTrigger value="in-progress">
-                In Progress ({inProgressComplaints.length})
-              </TabsTrigger>
-              <TabsTrigger value="resolved">
-                Resolved ({resolvedComplaints.length})
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="all" className="mt-0">
-              {filteredComplaints.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-gray-500">No complaints found.</p>
-                </div>
-              ) : (
-                <div>
-                  {filteredComplaints.map(renderComplaintCard)}
-                </div>
-              )}
-            </TabsContent>
-            
-            <TabsContent value="pending" className="mt-0">
-              {pendingComplaints.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-gray-500">No pending complaints found.</p>
-                </div>
-              ) : (
-                <div>
-                  {pendingComplaints.map(renderComplaintCard)}
-                </div>
-              )}
-            </TabsContent>
-            
-            <TabsContent value="in-progress" className="mt-0">
-              {inProgressComplaints.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-gray-500">No in-progress complaints found.</p>
-                </div>
-              ) : (
-                <div>
-                  {inProgressComplaints.map(renderComplaintCard)}
-                </div>
-              )}
-            </TabsContent>
-            
-            <TabsContent value="resolved" className="mt-0">
-              {resolvedComplaints.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-gray-500">No resolved complaints found.</p>
-                </div>
-              ) : (
-                <div>
-                  {resolvedComplaints.map(renderComplaintCard)}
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
+          {isLoading ? (
+            <div className="flex justify-center items-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <span className="ml-2 text-lg">Loading your complaints...</span>
+            </div>
+          ) : (
+            <Tabs defaultValue="all">
+              <TabsList className="w-full md:w-auto grid grid-cols-4 mb-6">
+                <TabsTrigger value="all">
+                  All ({filteredComplaints.length})
+                </TabsTrigger>
+                <TabsTrigger value="pending">
+                  Pending ({pendingComplaints.length})
+                </TabsTrigger>
+                <TabsTrigger value="in-progress">
+                  In Progress ({inProgressComplaints.length})
+                </TabsTrigger>
+                <TabsTrigger value="resolved">
+                  Resolved ({resolvedComplaints.length})
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="all" className="mt-0">
+                {filteredComplaints.length === 0 ? (
+                  <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="mb-4 flex justify-center">
+                      <AlertTriangle className="h-12 w-12 text-gray-400" />
+                    </div>
+                    <p className="text-gray-500 mb-2">No complaints found.</p>
+                    <p className="text-sm text-gray-400 mb-4">Submit a new complaint to get started</p>
+                    <Button asChild>
+                      <Link to="/submit-complaint">
+                        <Plus className="mr-2 h-4 w-4" />
+                        New Complaint
+                      </Link>
+                    </Button>
+                  </div>
+                ) : (
+                  <div>
+                    {filteredComplaints.map(renderComplaintCard)}
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="pending" className="mt-0">
+                {pendingComplaints.length === 0 ? (
+                  <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+                    <p className="text-gray-500">No pending complaints found.</p>
+                  </div>
+                ) : (
+                  <div>
+                    {pendingComplaints.map(renderComplaintCard)}
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="in-progress" className="mt-0">
+                {inProgressComplaints.length === 0 ? (
+                  <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+                    <p className="text-gray-500">No in-progress complaints found.</p>
+                  </div>
+                ) : (
+                  <div>
+                    {inProgressComplaints.map(renderComplaintCard)}
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="resolved" className="mt-0">
+                {resolvedComplaints.length === 0 ? (
+                  <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+                    <p className="text-gray-500">No resolved complaints found.</p>
+                  </div>
+                ) : (
+                  <div>
+                    {resolvedComplaints.map(renderComplaintCard)}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          )}
         </div>
       </main>
       <Footer />
