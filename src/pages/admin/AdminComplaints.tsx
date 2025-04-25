@@ -30,7 +30,7 @@ export default function AdminComplaints() {
     complaint.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
     complaint.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
     complaint.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    complaint.profiles?.full_name?.toLowerCase().includes(searchTerm.toLowerCase() || '')
+    complaint.user_profile?.full_name?.toLowerCase().includes(searchTerm.toLowerCase() || '')
   );
   
   const getStatusBadgeColor = (status: string) => {
@@ -92,7 +92,7 @@ export default function AdminComplaints() {
                   {filteredComplaints.map((complaint) => (
                     <TableRow key={complaint.id}>
                       <TableCell className="font-mono text-xs">{complaint.id.substring(0, 8)}</TableCell>
-                      <TableCell>{complaint.profiles?.full_name || 'Unknown'}</TableCell>
+                      <TableCell>{complaint.user_profile?.full_name || 'Unknown'}</TableCell>
                       <TableCell>{complaint.category}</TableCell>
                       <TableCell>
                         <Badge className={`${getStatusBadgeColor(complaint.status)} text-white`}>

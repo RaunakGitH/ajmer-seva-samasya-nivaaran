@@ -151,7 +151,7 @@ export default function AdminDashboard() {
                     <div className={`w-2 h-2 rounded-full ${activityColor} mr-2`}></div>
                     <p className="text-sm">
                       New complaint about <span className="font-medium">{complaint.category}</span> submitted
-                      {complaint.profiles?.full_name ? ` by ${complaint.profiles.full_name}` : ''}
+                      {complaint.user_profile?.full_name ? ` by ${complaint.user_profile.full_name}` : ''}
                     </p>
                     <span className="ml-auto text-xs text-muted-foreground">{timeAgo}</span>
                   </div>
