@@ -15,7 +15,7 @@ export const useAllComplaints = () => {
         .from("complaints")
         .select(`
           *,
-          profiles:user_id(full_name, email)
+          profiles:user_id(id, full_name, email)
         `)
         .order("created_at", { ascending: false });
       

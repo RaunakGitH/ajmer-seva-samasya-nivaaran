@@ -30,7 +30,7 @@ export default function AdminComplaints() {
     complaint.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
     complaint.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
     complaint.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (complaint.profiles?.full_name || '').toLowerCase().includes(searchTerm.toLowerCase())
+    complaint.profiles?.full_name?.toLowerCase().includes(searchTerm.toLowerCase() || '')
   );
   
   const getStatusBadgeColor = (status: string) => {
