@@ -1,7 +1,6 @@
 
-import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { MapPin, Trash, Droplet, Lightbulb, Building, Trees, AlertTriangle } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface Category {
   id: string;
@@ -62,23 +61,37 @@ export function CategorySelector({ onSelect, selectedCategoryId }: CategorySelec
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {categories.map((category) => (
         <Card 
           key={category.id}
-          className={`cursor-pointer transition-all ${
-            selectedCategoryId === category.id ? 'ring-2 ring-primary' : 'hover:shadow-md'
+          className={`cursor-pointer transition-all duration-300 border-0 hover:shadow-lg group overflow-hidden ${
+            selectedCategoryId === category.id 
+              ? 'ring-2 ring-primary shadow-md shadow-primary/10' 
+              : 'hover:shadow-primary/5 bg-white/70 dark:bg-gray-800/70'
           }`}
           onClick={() => onSelect(category)}
         >
-          <CardContent className="p-6 flex flex-col items-center text-center">
-            <div className={`p-3 rounded-full mb-4 ${
-              selectedCategoryId === category.id ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-gray-600'
+          <div className={`absolute inset-0 bg-gradient-to-br opacity-10 transition-opacity duration-300 ${
+            selectedCategoryId === category.id 
+              ? 'from-primary/20 to-violet-600/20 opacity-20' 
+              : 'from-gray-100 to-transparent group-hover:opacity-20'
+          }`}></div>
+          
+          <CardContent className="p-5 flex flex-col items-center text-center relative z-10">
+            <div className={`p-3 rounded-full mb-3 transition-all duration-300 ${
+              selectedCategoryId === category.id 
+                ? 'bg-primary/10 text-primary scale-110' 
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 group-hover:bg-primary/5 group-hover:text-primary/80 group-hover:scale-110'
             }`}>
               {category.icon}
             </div>
-            <h3 className="text-lg font-medium mb-2">{category.name}</h3>
-            <p className="text-sm text-gray-500">{category.description}</p>
+            <h3 className={`text-lg font-medium mb-1 transition-colors duration-200 ${
+              selectedCategoryId === category.id 
+                ? 'text-primary' 
+                : 'text-gray-800 dark:text-gray-200'
+            }`}>{category.name}</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">{category.description}</p>
           </CardContent>
         </Card>
       ))}
