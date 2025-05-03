@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -350,7 +349,11 @@ export default function StaffDashboard() {
                         <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                         <YAxis hide />
                         <Tooltip />
-                        <Bar dataKey="value" fill={(entry) => entry.color} />
+                        <Bar dataKey="value" fill="#8884d8">
+                          {npsScoreData.map((entry, index) => (
+                            <rect key={`rect-${index}`} fill={entry.color} />
+                          ))}
+                        </Bar>
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
