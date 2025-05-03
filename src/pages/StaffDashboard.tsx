@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ import {
   FileText,
   CheckCircle,
   AlertTriangle,
+  Loader2,
 } from "lucide-react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import {
@@ -30,6 +32,8 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { useAllComplaints } from "@/hooks/useAllComplaints";
+import { format } from "date-fns";
 
 // Mock data for the charts
 const monthlyData = [
@@ -53,36 +57,23 @@ const npsScoreData = [
   { name: "Detractors", value: 15, color: "#f87171" },
 ];
 
-// Recent complaints data
-const recentComplaints = [
-  {
-    id: "C-12345",
-    title: "Street Light Malfunction",
-    location: "Oak Street & Pine Avenue",
-    priority: "High",
-    date: "Today, 9:30 AM",
-    status: "New"
-  },
-  {
-    id: "C-12346",
-    title: "Road Pothole Repair",
-    location: "Maple Drive",
-    priority: "Medium",
-    date: "Yesterday",
-    status: "In Progress"
-  },
-  {
-    id: "C-12347",
-    title: "Fallen Tree Branch",
-    location: "Central Park",
-    priority: "Medium",
-    date: "2 days ago",
-    status: "New"
-  },
-];
-
 export default function StaffDashboard() {
   const [activeTab, setActiveTab] = useState("satisfaction");
+  const [searchQuery, setSearchQuery] = useState("");
+  const { complaints, isLoading, error } = useAllComplaints();
+
+  // Filter complaints based on search query
+  const filteredComplaints = complaints.filter(complaint => 
+    searchQuery.length === 0 || 
+    complaint.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    complaint.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    complaint.user_profile?.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Get only the most recent complaints for display
+  const recentComplaints = [...filteredComplaints]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 5);
 
   return (
     <AdminLayout>
@@ -95,6 +86,8 @@ export default function StaffDashboard() {
               type="search" 
               placeholder="Search for tasks, complaints, and citizens" 
               className="pl-8 bg-white dark:bg-gray-900"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
           
@@ -144,7 +137,7 @@ export default function StaffDashboard() {
                   <div className="bg-blue-100 dark:bg-blue-900/20 p-3 rounded-full">
                     <FileText className="text-blue-600 dark:text-blue-400" size={24} />
                   </div>
-                  <span className="text-3xl font-bold">127</span>
+                  <span className="text-3xl font-bold">{complaints.length}</span>
                 </div>
                 <h3 className="font-medium mb-1">Total Complaints</h3>
                 <p className="text-sm text-muted-foreground flex items-center">
@@ -159,7 +152,9 @@ export default function StaffDashboard() {
                   <div className="bg-amber-100 dark:bg-amber-900/20 p-3 rounded-full">
                     <AlertTriangle className="text-amber-600 dark:text-amber-400" size={24} />
                   </div>
-                  <span className="text-3xl font-bold">12</span>
+                  <span className="text-3xl font-bold">
+                    {complaints.filter(c => c.status === 'Pending').length}
+                  </span>
                 </div>
                 <h3 className="font-medium mb-1">Pending Issues</h3>
                 <p className="text-sm text-muted-foreground flex items-center">
@@ -373,54 +368,75 @@ export default function StaffDashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="text-left p-3 text-xs font-medium text-muted-foreground">ID</th>
-                      <th className="text-left p-3 text-xs font-medium text-muted-foreground">COMPLAINT</th>
-                      <th className="text-left p-3 text-xs font-medium text-muted-foreground">LOCATION</th>
-                      <th className="text-left p-3 text-xs font-medium text-muted-foreground">PRIORITY</th>
-                      <th className="text-left p-3 text-xs font-medium text-muted-foreground">DATE</th>
-                      <th className="text-left p-3 text-xs font-medium text-muted-foreground">STATUS</th>
-                      <th className="text-right p-3 text-xs font-medium text-muted-foreground">ACTION</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentComplaints.map((complaint) => (
-                      <tr key={complaint.id} className="border-b border-border hover:bg-muted/30">
-                        <td className="p-3 text-sm font-medium">{complaint.id}</td>
-                        <td className="p-3 text-sm">{complaint.title}</td>
-                        <td className="p-3 text-sm text-muted-foreground">{complaint.location}</td>
-                        <td className="p-3">
-                          <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                            complaint.priority === "High" 
-                              ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" 
-                              : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                          }`}>
-                            {complaint.priority}
-                          </span>
-                        </td>
-                        <td className="p-3 text-sm text-muted-foreground">{complaint.date}</td>
-                        <td className="p-3">
-                          <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                            complaint.status === "New" 
-                              ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" 
-                              : "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
-                          }`}>
-                            {complaint.status}
-                          </span>
-                        </td>
-                        <td className="p-3 text-right">
-                          <Button size="sm" variant="outline">
-                            View Details
-                          </Button>
-                        </td>
+              {isLoading ? (
+                <div className="flex justify-center items-center py-10">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
+                  <p>Loading complaints...</p>
+                </div>
+              ) : error ? (
+                <div className="text-center py-6 text-red-500">
+                  <p>Failed to load complaints. Please try again.</p>
+                </div>
+              ) : recentComplaints.length === 0 ? (
+                <div className="text-center py-6 text-muted-foreground">
+                  <p>No complaints found.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left p-3 text-xs font-medium text-muted-foreground">ID</th>
+                        <th className="text-left p-3 text-xs font-medium text-muted-foreground">COMPLAINT</th>
+                        <th className="text-left p-3 text-xs font-medium text-muted-foreground">SUBMITTED BY</th>
+                        <th className="text-left p-3 text-xs font-medium text-muted-foreground">PRIORITY</th>
+                        <th className="text-left p-3 text-xs font-medium text-muted-foreground">DATE</th>
+                        <th className="text-left p-3 text-xs font-medium text-muted-foreground">STATUS</th>
+                        <th className="text-right p-3 text-xs font-medium text-muted-foreground">ACTION</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {recentComplaints.map((complaint) => (
+                        <tr key={complaint.id} className="border-b border-border hover:bg-muted/30">
+                          <td className="p-3 text-sm font-medium">{complaint.id.slice(0, 8)}</td>
+                          <td className="p-3 text-sm">{complaint.category}</td>
+                          <td className="p-3 text-sm text-muted-foreground">
+                            {complaint.user_profile?.full_name || 'Anonymous'}
+                          </td>
+                          <td className="p-3">
+                            <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                              complaint.status === "Pending" 
+                                ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" 
+                                : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                            }`}>
+                              {complaint.status === "Pending" ? "High" : "Medium"}
+                            </span>
+                          </td>
+                          <td className="p-3 text-sm text-muted-foreground">
+                            {format(new Date(complaint.created_at), 'MMM d, yyyy')}
+                          </td>
+                          <td className="p-3">
+                            <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                              complaint.status === "Pending" 
+                                ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" 
+                                : complaint.status === "In Progress"
+                                ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
+                                : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                            }`}>
+                              {complaint.status}
+                            </span>
+                          </td>
+                          <td className="p-3 text-right">
+                            <Button size="sm" variant="outline">
+                              View Details
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
