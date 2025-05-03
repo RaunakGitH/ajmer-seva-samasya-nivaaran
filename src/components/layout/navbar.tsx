@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import { Menu, X, User, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { 
   Dialog, 
   DialogContent, 
@@ -24,7 +23,7 @@ export function Navbar() {
   const { session } = useSupabaseSession();
 
   return (
-    <nav className="bg-white shadow-sm dark:bg-background">
+    <nav className="bg-white shadow-sm">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
@@ -53,7 +52,6 @@ export function Navbar() {
               Contact
             </Link>
             <LanguageSwitcher />
-            <ThemeToggle />
             {session ? (
               <ProfileMenu />
             ) : (
@@ -66,7 +64,6 @@ export function Navbar() {
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
             <LanguageSwitcher />
-            <ThemeToggle />
             {!session && (
               <Button asChild variant="default" size="sm" className="ml-2">
                 <Link to="/auth">Login</Link>

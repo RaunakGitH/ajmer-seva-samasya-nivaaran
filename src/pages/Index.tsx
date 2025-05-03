@@ -8,20 +8,12 @@ import { StatsSection } from '@/components/home/stats-section';
 import { Testimonials } from '@/components/home/testimonials';
 import { CTASection } from '@/components/home/cta-section';
 import { useEffect } from 'react';
-import { useTheme } from 'next-themes';
 
 const Index = () => {
   // Log when the component mounts to help with debugging
   useEffect(() => {
     console.log('Index page mounted successfully');
   }, []);
-
-  // Initialize theme context
-  const { theme } = useTheme();
-  
-  useEffect(() => {
-    console.log('Current theme:', theme);
-  }, [theme]);
 
   return (
     <div className="min-h-screen flex flex-col">

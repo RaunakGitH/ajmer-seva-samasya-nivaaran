@@ -2,7 +2,6 @@
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +17,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gray-100 dark:bg-gray-900">
+      <div className="min-h-screen flex w-full bg-gray-100">
         <AppSidebar />
         <main className="flex-1 p-6">
           <div className="flex items-center justify-between mb-6">
@@ -27,7 +26,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               <Input 
                 type="search" 
                 placeholder="Search" 
-                className="pl-10 pr-4 py-2 w-full rounded-lg bg-white dark:bg-gray-800"
+                className="pl-10 pr-4 py-2 w-full rounded-lg bg-white"
               />
             </div>
             
@@ -45,7 +44,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   </svg>
                 </Button>
               </div>
-              <ThemeToggle />
             </div>
           </div>
           {children}
