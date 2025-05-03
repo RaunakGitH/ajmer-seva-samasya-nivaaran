@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { 
   Card, 
@@ -12,7 +13,7 @@ import { Search, UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { Enums } from "@/integrations/supabase/types";
+import { Database } from "@/integrations/supabase/types";
 import UserForm, { UserFormData } from "@/components/admin/UserForm";
 import UserTable, { UserType } from "@/components/admin/UserTable";
 import ConfirmationDialog from "@/components/admin/ConfirmationDialog";
@@ -173,7 +174,7 @@ export default function AdminUsers() {
           .update({
             full_name: formData.fullName,
             email: formData.email,
-            role: formData.role as Enums["user_role"],
+            role: formData.role as Database["public"]["Enums"]["user_role"],
             phone: formData.phone || null,
             updated_at: new Date().toISOString()
           })
@@ -204,7 +205,7 @@ export default function AdminUsers() {
           const { error: profileError } = await supabase
             .from('profiles')
             .update({
-              role: formData.role as Enums["user_role"],
+              role: formData.role as Database["public"]["Enums"]["user_role"],
               phone: formData.phone || null
             })
             .eq('id', authData.user.id);
