@@ -102,8 +102,15 @@ export default function AdminComplaints() {
                       </TableCell>
                       <TableCell>{format(new Date(complaint.created_at), 'yyyy-MM-dd')}</TableCell>
                       <TableCell>
-                        <Button size="sm" variant="outline" asChild>
-                          <Link to={`/complaint-details/${complaint.id}`}>View Details</Link>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          asChild
+                          className="mr-2"
+                        >
+                          <Link to={`/complaint-details/${complaint.id}`}>
+                            View
+                          </Link>
                         </Button>
                       </TableCell>
                     </TableRow>

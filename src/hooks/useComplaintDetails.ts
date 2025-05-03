@@ -12,7 +12,8 @@ export const useComplaintDetails = (complaintId: string) => {
         .select(`
           *,
           user_profile:profiles!user_id(full_name, email),
-          assigned_profile:profiles!assigned_to(full_name)
+          assigned_profile:profiles!assigned_to(full_name),
+          complaint_history(id, created_at, previous_status, new_status, remarks, updated_by)
         `)
         .eq("id", complaintId)
         .maybeSingle();

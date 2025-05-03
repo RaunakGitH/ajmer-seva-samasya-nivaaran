@@ -14,7 +14,8 @@ import {
   User,
   MessageSquare,
   ImageIcon,
-  Loader2
+  Loader2,
+  HistoryIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,12 +25,22 @@ import { Separator } from "@/components/ui/separator";
 import { useComplaintDetails } from "@/hooks/useComplaintDetails";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { ComplaintUpdateForm } from "@/components/admin/ComplaintUpdateForm";
+import { ComplaintHistoryTimeline } from "@/components/admin/ComplaintHistoryTimeline";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const ComplaintDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { data: complaint, isLoading, error } = useComplaintDetails(id || "");
+  const [activeTab, setActiveTab] = useState("details");
+  
+  const { data: complaint, isLoading, error, refetch } = useComplaintDetails(id || "");
+  
+  // Check if user is admin or staff
+  const isAdmin = localStorage.getItem('adminAuth') === 'true';
+  const isStaff = localStorage.getItem('staffAuth') === 'true';
+  const canUpdateStatus = isAdmin || isStaff;
   
   if (error) {
     toast({
@@ -81,7 +92,7 @@ const ComplaintDetails = () => {
             className="mb-6 hover:bg-gray-100"
           >
             <ChevronLeft className="mr-2 h-4 w-4" />
-            Back to Complaints
+            Back
           </Button>
           
           {isLoading ? (
@@ -167,44 +178,82 @@ const ComplaintDetails = () => {
                     
                     <Separator className="my-6" />
                     
-                    <div className="mb-6">
-                      <h3 className="text-lg font-semibold mb-4">Description</h3>
-                      <p className="whitespace-pre-line text-gray-700">{complaint.description}</p>
-                    </div>
-                    
-                    {complaint.media_urls && complaint.media_urls.length > 0 && (
-                      <>
-                        <Separator className="my-6" />
-                        
-                        <div>
-                          <h3 className="text-lg font-semibold mb-4 flex items-center">
-                            <ImageIcon className="mr-2 h-5 w-5" />
-                            Attached Images
-                          </h3>
-                          
-                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                            {complaint.media_urls.map((url, index) => (
-                              <div key={index} className="relative aspect-square rounded-lg overflow-hidden border bg-gray-50">
-                                <img 
-                                  src={url}
-                                  alt={`Complaint image ${index + 1}`}
-                                  className="object-cover w-full h-full"
-                                />
-                              </div>
-                            ))}
-                          </div>
+                    <Tabs 
+                      value={activeTab} 
+                      onValueChange={setActiveTab}
+                      className="w-full"
+                    >
+                      <TabsList className="mb-4">
+                        <TabsTrigger value="details">Details</TabsTrigger>
+                        {(canUpdateStatus && complaint.complaint_history) && (
+                          <TabsTrigger value="history" className="flex items-center gap-1">
+                            <HistoryIcon className="h-4 w-4" />
+                            History
+                          </TabsTrigger>
+                        )}
+                      </TabsList>
+                      
+                      <TabsContent value="details">
+                        <div className="mb-6">
+                          <h3 className="text-lg font-semibold mb-4">Description</h3>
+                          <p className="whitespace-pre-line text-gray-700">{complaint.description}</p>
                         </div>
-                      </>
-                    )}
+                        
+                        {complaint.media_urls && complaint.media_urls.length > 0 && (
+                          <>
+                            <Separator className="my-6" />
+                            
+                            <div>
+                              <h3 className="text-lg font-semibold mb-4 flex items-center">
+                                <ImageIcon className="mr-2 h-5 w-5" />
+                                Attached Images
+                              </h3>
+                              
+                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                {complaint.media_urls.map((url, index) => (
+                                  <div key={index} className="relative aspect-square rounded-lg overflow-hidden border bg-gray-50">
+                                    <img 
+                                      src={url}
+                                      alt={`Complaint image ${index + 1}`}
+                                      className="object-cover w-full h-full"
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </TabsContent>
+                      
+                      {canUpdateStatus && (
+                        <TabsContent value="history">
+                          <div className="mb-6">
+                            <h3 className="text-lg font-semibold mb-4">Status History</h3>
+                            {complaint.complaint_history && (
+                              <ComplaintHistoryTimeline historyItems={complaint.complaint_history} />
+                            )}
+                          </div>
+                        </TabsContent>
+                      )}
+                    </Tabs>
                   </CardContent>
                   
                   <CardFooter className="border-t pt-6 flex justify-between">
-                    {complaint.status === 'Resolved' && (
+                    {canUpdateStatus && (
+                      <ComplaintUpdateForm 
+                        complaintId={complaint.id} 
+                        currentStatus={complaint.status}
+                        onUpdateSuccess={refetch}
+                      />
+                    )}
+                    
+                    {complaint.status === 'Resolved' && !canUpdateStatus && (
                       <Button>
                         Provide Feedback
                       </Button>
                     )}
-                    {complaint.status !== 'Resolved' && (
+                    
+                    {complaint.status !== 'Resolved' && !canUpdateStatus && (
                       <div className="text-sm text-gray-500">
                         We're working on addressing your complaint.
                       </div>
