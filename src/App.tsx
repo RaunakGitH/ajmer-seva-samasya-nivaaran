@@ -18,6 +18,10 @@ import AdminDashboard from "@/pages/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminSettings from "@/pages/admin/AdminSettings";
 import AdminComplaints from "@/pages/admin/AdminComplaints";
+import AdminProjects from "@/pages/admin/AdminProjects";
+import AdminServices from "@/pages/admin/AdminServices";
+import AdminNotifications from "@/pages/admin/AdminNotifications";
+import AdminChat from "@/pages/admin/AdminChat";
 import CitizenDashboard from "@/pages/CitizenDashboard";
 import StaffDashboard from "@/pages/StaffDashboard";
 import Auth from "@/pages/Auth";
@@ -86,6 +90,34 @@ const App = () => (
             <AdminRoute>
               <AdminLayout>
                 <AdminComplaints />
+              </AdminLayout>
+            </AdminRoute>
+          } />
+          <Route path="/admin/projects" element={
+            <AdminRoute>
+              <AdminLayout>
+                <AdminProjects />
+              </AdminLayout>
+            </AdminRoute>
+          } />
+          <Route path="/admin/services" element={
+            <AdminRoute>
+              <AdminLayout>
+                <AdminServices />
+              </AdminLayout>
+            </AdminRoute>
+          } />
+          <Route path="/admin/notifications" element={
+            <AdminRoute>
+              <AdminLayout>
+                <AdminNotifications />
+              </AdminLayout>
+            </AdminRoute>
+          } />
+          <Route path="/admin/chat" element={
+            <AdminRoute>
+              <AdminLayout>
+                <AdminChat />
               </AdminLayout>
             </AdminRoute>
           } />
