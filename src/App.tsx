@@ -35,6 +35,18 @@ const AdminRoute = ({ children }: { children: JSX.Element }) => {
   return children;
 };
 
+// Staff auth guard
+const StaffRoute = ({ children }: { children: JSX.Element }) => {
+  // This is a simple implementation, ideally you would check proper role/permissions
+  const isAuthenticated = localStorage.getItem('staffAuth') === 'true';
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/auth" />;
+  }
+  
+  return children;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
