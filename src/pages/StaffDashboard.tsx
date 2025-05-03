@@ -1,289 +1,443 @@
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { 
-  CheckCircle, Users, Loader, ClipboardCheck, BarChart2, Clock, 
-  FileText, AlertTriangle, CheckSquare
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  Legend,
+} from "recharts";
+import {
+  Search,
+  Bell,
+  ChevronDown,
+  Users,
+  FileText,
+  CheckCircle,
+  AlertTriangle,
 } from "lucide-react";
-import { Container } from "@/components/ui/container";
+import { AdminLayout } from "@/components/admin/AdminLayout";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 
-// Background image for the header section
-const HEADER_IMAGE =
-  "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&w=900&q=80";
+// Mock data for the charts
+const monthlyData = [
+  { month: "Jan", satisfaction: 82, count: 120 },
+  { month: "Feb", satisfaction: 93, count: 150 },
+  { month: "Mar", satisfaction: 76, count: 130 },
+  { month: "Apr", satisfaction: 83, count: 140 },
+  { month: "May", satisfaction: 75, count: 110 },
+  { month: "Jun", satisfaction: 83, count: 130 },
+  { month: "Jul", satisfaction: 75, count: 110 },
+  { month: "Aug", satisfaction: 92, count: 150 },
+  { month: "Sep", satisfaction: 86, count: 130 },
+  { month: "Oct", satisfaction: 94, count: 160 },
+  { month: "Nov", satisfaction: 88, count: 140 },
+  { month: "Dec", satisfaction: 86, count: 130 },
+];
+
+const npsScoreData = [
+  { name: "Promoters", value: 60, color: "#4ade80" },
+  { name: "Passives", value: 25, color: "#fde68a" },
+  { name: "Detractors", value: 15, color: "#f87171" },
+];
+
+// Recent complaints data
+const recentComplaints = [
+  {
+    id: "C-12345",
+    title: "Street Light Malfunction",
+    location: "Oak Street & Pine Avenue",
+    priority: "High",
+    date: "Today, 9:30 AM",
+    status: "New"
+  },
+  {
+    id: "C-12346",
+    title: "Road Pothole Repair",
+    location: "Maple Drive",
+    priority: "Medium",
+    date: "Yesterday",
+    status: "In Progress"
+  },
+  {
+    id: "C-12347",
+    title: "Fallen Tree Branch",
+    location: "Central Park",
+    priority: "Medium",
+    date: "2 days ago",
+    status: "New"
+  },
+];
 
 export default function StaffDashboard() {
-  const [activeTab, setActiveTab] = useState<'assigned' | 'activity'>('assigned');
-
-  // Stats data for the summary cards
-  const stats = [
-    {
-      title: "Assigned Complaints",
-      value: "8",
-      icon: <ClipboardCheck className="text-primary" size={24} />,
-      desc: "Currently assigned to you",
-      color: "bg-violet-100 dark:bg-violet-900/20",
-      iconColor: "text-violet-600",
-    },
-    {
-      title: "Resolved This Month",
-      value: "21",
-      icon: <CheckCircle className="text-green-600" size={24} />,
-      desc: "Successfully completed",
-      color: "bg-green-100 dark:bg-green-900/20",
-      iconColor: "text-green-600",
-    },
-    {
-      title: "Citizen Interactions",
-      value: "32",
-      icon: <Users className="text-blue-600" size={24} />,
-      desc: "This month",
-      color: "bg-blue-100 dark:bg-blue-900/20",
-      iconColor: "text-blue-600",
-    },
-  ];
-
-  // Recent assigned complaints data
-  const assignedComplaints = [
-    {
-      id: "C-12345",
-      title: "Street Light Malfunction",
-      location: "Oak Street & Pine Avenue",
-      priority: "High",
-      date: "Today, 9:30 AM",
-      status: "New"
-    },
-    {
-      id: "C-12346",
-      title: "Road Pothole Repair",
-      location: "Maple Drive",
-      priority: "Medium",
-      date: "Yesterday",
-      status: "In Progress"
-    },
-    {
-      id: "C-12347",
-      title: "Fallen Tree Branch",
-      location: "Central Park",
-      priority: "Medium",
-      date: "2 days ago",
-      status: "New"
-    },
-    {
-      id: "C-12348",
-      title: "Graffiti Removal",
-      location: "Main Street Underpass",
-      priority: "Low",
-      date: "3 days ago",
-      status: "In Progress"
-    },
-  ];
-
-  // Recent activity data
-  const recentActivity = [
-    {
-      id: "A-1234",
-      action: "Complaint Resolved",
-      description: "You marked complaint #C-12312 as resolved",
-      time: "2 hours ago"
-    },
-    {
-      id: "A-1235",
-      action: "Comment Added",
-      description: "You commented on complaint #C-12345",
-      time: "4 hours ago"
-    },
-    {
-      id: "A-1236",
-      action: "Status Updated",
-      description: "You changed status of #C-12346 to 'In Progress'",
-      time: "Yesterday"
-    },
-    {
-      id: "A-1237",
-      action: "Complaint Assigned",
-      description: "New complaint #C-12345 was assigned to you",
-      time: "2 days ago"
-    }
-  ];
+  const [activeTab, setActiveTab] = useState("satisfaction");
 
   return (
-    <div className="min-h-screen bg-gray-50/80 flex flex-col">
-      {/* Modern gradient header with overlay */}
-      <div className="relative">
-        <div
-          className="h-48 w-full overflow-hidden"
-          style={{
-            backgroundImage: `url('${HEADER_IMAGE}')`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-900/80 to-primary/70 mix-blend-multiply" />
-          <div className="relative h-full z-10 flex flex-col justify-center px-6 md:px-10">
-            <div className="max-w-5xl mx-auto w-full">
-              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2">
-                Staff Dashboard
-              </h1>
-              <p className="text-white/90 max-w-lg">
-                Manage and resolve citizen complaints efficiently
-              </p>
-            </div>
+    <AdminLayout>
+      <div className="flex flex-col w-full">
+        {/* Header with search and quick actions */}
+        <div className="flex items-center justify-between mb-6 gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input 
+              type="search" 
+              placeholder="Search for tasks, complaints, and citizens" 
+              className="pl-8 bg-white dark:bg-gray-900"
+            />
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button variant="outline" className="flex items-center gap-1 h-9">
+              Quick actions <ChevronDown className="h-4 w-4 ml-1" />
+            </Button>
+            <Button variant="ghost" size="icon" className="relative">
+              <Bell className="h-5 w-5" />
+              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+            </Button>
           </div>
         </div>
-      </div>
 
-      <Container className="pb-12 -mt-10">
-        {/* Stats section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
-          {stats.map((stat) => (
-            <Card 
-              key={stat.title} 
-              className="border-none shadow-md hover:shadow-lg transition-all duration-200"
-            >
+        {/* Navigation tabs */}
+        <Tabs defaultValue="satisfaction" className="mb-6">
+          <TabsList className="bg-background border border-border w-full justify-start">
+            <TabsTrigger value="metrics" onClick={() => setActiveTab("metrics")}>Complaint Metrics</TabsTrigger>
+            <TabsTrigger value="satisfaction" onClick={() => setActiveTab("satisfaction")}>Citizen Satisfaction</TabsTrigger>
+            <TabsTrigger value="reports" onClick={() => setActiveTab("reports")}>Reports</TabsTrigger>
+            <TabsTrigger value="team" onClick={() => setActiveTab("team")}>Team Activity</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        {/* Main content */}
+        <div className="space-y-6">
+          {/* Stats row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <Card className="border-none shadow-sm">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className={`${stat.color} p-3 rounded-full`}>
-                    {stat.icon}
+                  <div className="bg-green-100 dark:bg-green-900/20 p-3 rounded-full">
+                    <CheckCircle className="text-green-600 dark:text-green-400" size={24} />
                   </div>
-                  <span className="text-3xl font-bold">{stat.value}</span>
+                  <span className="text-3xl font-bold">80%</span>
                 </div>
-                <h3 className="font-medium mb-1">{stat.title}</h3>
-                <p className="text-sm text-muted-foreground">{stat.desc}</p>
+                <h3 className="font-medium mb-1">Satisfaction Rate</h3>
+                <p className="text-sm text-muted-foreground flex items-center">
+                  <span className="text-green-500 mr-1">↑ 1.3%</span> vs last month
+                </p>
               </CardContent>
             </Card>
-          ))}
-        </div>
-        
-        {/* Tab navigation */}
-        <div className="mb-6">
-          <div className="border-b flex space-x-4">
-            <Button
-              variant="ghost"
-              className={`pb-4 px-2 relative rounded-none ${
-                activeTab === "assigned"
-                  ? "text-primary font-medium after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary"
-                  : "text-muted-foreground"
-              }`}
-              onClick={() => setActiveTab("assigned")}
-            >
-              <ClipboardCheck className="mr-2 h-4 w-4" />
-              Assigned Complaints
-            </Button>
-            <Button
-              variant="ghost"
-              className={`pb-4 px-2 relative rounded-none ${
-                activeTab === "activity"
-                  ? "text-primary font-medium after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary"
-                  : "text-muted-foreground"
-              }`}
-              onClick={() => setActiveTab("activity")}
-            >
-              <Clock className="mr-2 h-4 w-4" />
-              Recent Activity
-            </Button>
+
+            <Card className="border-none shadow-sm">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="bg-blue-100 dark:bg-blue-900/20 p-3 rounded-full">
+                    <FileText className="text-blue-600 dark:text-blue-400" size={24} />
+                  </div>
+                  <span className="text-3xl font-bold">127</span>
+                </div>
+                <h3 className="font-medium mb-1">Total Complaints</h3>
+                <p className="text-sm text-muted-foreground flex items-center">
+                  <span className="text-green-500 mr-1">↑ 4%</span> vs last month
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-none shadow-sm">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="bg-amber-100 dark:bg-amber-900/20 p-3 rounded-full">
+                    <AlertTriangle className="text-amber-600 dark:text-amber-400" size={24} />
+                  </div>
+                  <span className="text-3xl font-bold">12</span>
+                </div>
+                <h3 className="font-medium mb-1">Pending Issues</h3>
+                <p className="text-sm text-muted-foreground flex items-center">
+                  <span className="text-red-500 mr-1">↑ 3</span> from yesterday
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-none shadow-sm">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="bg-violet-100 dark:bg-violet-900/20 p-3 rounded-full">
+                    <Users className="text-violet-600 dark:text-violet-400" size={24} />
+                  </div>
+                  <span className="text-3xl font-bold">248</span>
+                </div>
+                <h3 className="font-medium mb-1">Citizen Interactions</h3>
+                <p className="text-sm text-muted-foreground flex items-center">
+                  <span className="text-green-500 mr-1">↑ 12%</span> this month
+                </p>
+              </CardContent>
+            </Card>
           </div>
-        </div>
 
-        {/* Main content based on selected tab */}
-        <div className="bg-white rounded-lg shadow-sm border p-1">
-          {activeTab === "assigned" && (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Complaint</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Priority</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {assignedComplaints.map((complaint) => (
-                    <TableRow key={complaint.id}>
-                      <TableCell className="font-medium">{complaint.id}</TableCell>
-                      <TableCell>{complaint.title}</TableCell>
-                      <TableCell>{complaint.location}</TableCell>
-                      <TableCell>
-                        <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                          complaint.priority === "High" 
-                            ? "bg-red-100 text-red-700" 
-                            : complaint.priority === "Medium" 
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-green-100 text-green-700"
-                        }`}>
-                          {complaint.priority}
-                        </span>
-                      </TableCell>
-                      <TableCell>{complaint.date}</TableCell>
-                      <TableCell>
-                        <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                          complaint.status === "New" 
-                            ? "bg-blue-100 text-blue-700" 
-                            : "bg-purple-100 text-purple-700"
-                        }`}>
-                          {complaint.status}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Button size="sm" variant="outline">
-                          View Details
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+          {/* Charts section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Monthly Satisfaction Chart */}
+            <Card className="border-none shadow-sm">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg font-medium">Citizen Satisfaction</CardTitle>
+                  <Button variant="outline" size="sm" className="h-8">
+                    Monthly <ChevronDown className="ml-1 h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Overall score — August</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-3xl font-bold">80%</span>
+                        <span className="text-sm font-medium text-green-500">↑ 1.3%</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-6">
+                      <div className="text-center">
+                        <div className="flex items-center justify-center mb-1">
+                          <span className="h-2 w-2 rounded-full bg-green-500 mr-1"></span>
+                          <span className="text-xs text-muted-foreground">Satisfied</span>
+                        </div>
+                        <p className="font-medium">60%</p>
+                      </div>
+                      
+                      <div className="text-center">
+                        <div className="flex items-center justify-center mb-1">
+                          <span className="h-2 w-2 rounded-full bg-yellow-400 mr-1"></span>
+                          <span className="text-xs text-muted-foreground">Neutral</span>
+                        </div>
+                        <p className="font-medium">25%</p>
+                      </div>
+                      
+                      <div className="text-center">
+                        <div className="flex items-center justify-center mb-1">
+                          <span className="h-2 w-2 rounded-full bg-red-500 mr-1"></span>
+                          <span className="text-xs text-muted-foreground">Unsatisfied</span>
+                        </div>
+                        <p className="font-medium">15%</p>
+                      </div>
+                    </div>
+                  </div>
 
-          {activeTab === "activity" && (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Action</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Time</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {recentActivity.map((activity) => (
-                    <TableRow key={activity.id}>
-                      <TableCell className="font-medium">{activity.action}</TableCell>
-                      <TableCell>{activity.description}</TableCell>
-                      <TableCell>{activity.time}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </div>
+                  <div className="h-[250px]">
+                    <ChartContainer
+                      config={{
+                        satisfaction: {
+                          label: "Satisfaction",
+                          color: "#4ade80",
+                        },
+                      }}
+                    >
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart
+                          data={monthlyData}
+                          margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
+                        >
+                          <defs>
+                            <linearGradient id="colorSatisfaction" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#4ade80" stopOpacity={0.1} />
+                              <stop offset="95%" stopColor="#4ade80" stopOpacity={0.01} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid vertical={false} stroke="#f0f0f0" />
+                          <XAxis 
+                            dataKey="month" 
+                            axisLine={false} 
+                            tickLine={false} 
+                            tick={{ fontSize: 12 }}
+                          />
+                          <YAxis 
+                            axisLine={false} 
+                            tickLine={false} 
+                            tick={{ fontSize: 12 }}
+                            domain={[50, 100]}
+                            ticks={[50, 75, 100]}
+                          />
+                          <Tooltip content={<CustomTooltip />} />
+                          <Line
+                            type="monotone"
+                            dataKey="satisfaction"
+                            name="Satisfaction"
+                            stroke="#4ade80"
+                            strokeWidth={2}
+                            dot={{ r: 3, strokeWidth: 0, fill: "#4ade80" }}
+                            activeDot={{ r: 5 }}
+                            fill="url(#colorSatisfaction)"
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </ChartContainer>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Quick actions section */}
-        <div className="mt-8">
-          <h2 className="text-lg font-medium mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button className="flex items-center justify-center py-6 h-auto" variant="outline">
-              <FileText className="mr-2 h-5 w-5" />
-              Create Report
-            </Button>
-            <Button className="flex items-center justify-center py-6 h-auto" variant="outline">
-              <CheckSquare className="mr-2 h-5 w-5" />
-              Update Complaint Status
-            </Button>
-            <Button className="flex items-center justify-center py-6 h-auto" variant="outline">
-              <AlertTriangle className="mr-2 h-5 w-5" />
-              Flag Critical Issue
-            </Button>
+            {/* NPS Score Chart */}
+            <Card className="border-none shadow-sm">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg font-medium">Net Promoter Score</CardTitle>
+                  <Button variant="outline" size="sm" className="h-8">
+                    Month <ChevronDown className="ml-1 h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">NPS score</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-3xl font-bold">80%</span>
+                      <span className="text-sm font-medium text-green-500">↑ 1.1%</span>
+                    </div>
+                  </div>
+                  
+                  <div className="h-4 bg-gray-100 rounded-full flex overflow-hidden">
+                    <div className="bg-green-500 h-full" style={{ width: "60%" }}></div>
+                    <div className="bg-amber-200 h-full" style={{ width: "25%" }}></div>
+                    <div className="bg-red-300 h-full" style={{ width: "15%" }}></div>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-4 pt-2">
+                    <div>
+                      <div className="flex items-center mb-1">
+                        <span className="h-2.5 w-2.5 rounded-sm bg-green-500 mr-2"></span>
+                        <span className="text-xs text-muted-foreground">Promoters</span>
+                      </div>
+                      <p className="font-medium">60%</p>
+                    </div>
+                    
+                    <div>
+                      <div className="flex items-center mb-1">
+                        <span className="h-2.5 w-2.5 rounded-sm bg-amber-200 mr-2"></span>
+                        <span className="text-xs text-muted-foreground">Passives</span>
+                      </div>
+                      <p className="font-medium">25%</p>
+                    </div>
+                    
+                    <div>
+                      <div className="flex items-center mb-1">
+                        <span className="h-2.5 w-2.5 rounded-sm bg-red-300 mr-2"></span>
+                        <span className="text-xs text-muted-foreground">Detractors</span>
+                      </div>
+                      <p className="font-medium">15%</p>
+                    </div>
+                  </div>
+                  
+                  <div className="h-[150px] pt-4">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={npsScoreData}
+                        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                      >
+                        <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                        <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                        <YAxis hide />
+                        <Tooltip />
+                        <Bar dataKey="value" fill={(entry) => entry.color} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
+
+          {/* Recent complaints table */}
+          <Card className="border-none shadow-sm">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg font-medium">Recent Complaints</CardTitle>
+                <Button variant="outline" size="sm">
+                  View All
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left p-3 text-xs font-medium text-muted-foreground">ID</th>
+                      <th className="text-left p-3 text-xs font-medium text-muted-foreground">COMPLAINT</th>
+                      <th className="text-left p-3 text-xs font-medium text-muted-foreground">LOCATION</th>
+                      <th className="text-left p-3 text-xs font-medium text-muted-foreground">PRIORITY</th>
+                      <th className="text-left p-3 text-xs font-medium text-muted-foreground">DATE</th>
+                      <th className="text-left p-3 text-xs font-medium text-muted-foreground">STATUS</th>
+                      <th className="text-right p-3 text-xs font-medium text-muted-foreground">ACTION</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentComplaints.map((complaint) => (
+                      <tr key={complaint.id} className="border-b border-border hover:bg-muted/30">
+                        <td className="p-3 text-sm font-medium">{complaint.id}</td>
+                        <td className="p-3 text-sm">{complaint.title}</td>
+                        <td className="p-3 text-sm text-muted-foreground">{complaint.location}</td>
+                        <td className="p-3">
+                          <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                            complaint.priority === "High" 
+                              ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" 
+                              : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                          }`}>
+                            {complaint.priority}
+                          </span>
+                        </td>
+                        <td className="p-3 text-sm text-muted-foreground">{complaint.date}</td>
+                        <td className="p-3">
+                          <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                            complaint.status === "New" 
+                              ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" 
+                              : "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
+                          }`}>
+                            {complaint.status}
+                          </span>
+                        </td>
+                        <td className="p-3 text-right">
+                          <Button size="sm" variant="outline">
+                            View Details
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </Container>
-    </div>
+      </div>
+    </AdminLayout>
   );
 }
+
+// Custom tooltip for the chart
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white dark:bg-gray-800 p-3 border border-border shadow-md rounded-md">
+        <p className="text-sm font-medium">{label}</p>
+        <p className="text-sm text-muted-foreground">
+          Satisfaction: <span className="text-green-500 font-medium">{payload[0].value}%</span>
+        </p>
+      </div>
+    );
+  }
+
+  return null;
+};
