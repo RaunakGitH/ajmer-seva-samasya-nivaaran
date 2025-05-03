@@ -22,9 +22,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+// Define the complaint status type to match the database enum
+type ComplaintStatus = "Pending" | "In Progress" | "Resolved";
+
 interface ComplaintUpdateFormProps {
   complaintId: string;
-  currentStatus: string;
+  currentStatus: ComplaintStatus;
   onUpdateSuccess: () => void;
 }
 
@@ -34,7 +37,7 @@ export const ComplaintUpdateForm = ({
   onUpdateSuccess 
 }: ComplaintUpdateFormProps) => {
   const [open, setOpen] = useState(false);
-  const [status, setStatus] = useState(currentStatus);
+  const [status, setStatus] = useState<ComplaintStatus>(currentStatus);
   const [remarks, setRemarks] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -98,7 +101,7 @@ export const ComplaintUpdateForm = ({
             </label>
             <Select 
               value={status} 
-              onValueChange={setStatus}
+              onValueChange={(value: ComplaintStatus) => setStatus(value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select status" />
