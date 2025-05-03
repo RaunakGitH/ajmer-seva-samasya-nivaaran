@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { 
   Card, 
@@ -21,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Search, Loader2 } from "lucide-react";
 import { useAllComplaints } from "@/hooks/useAllComplaints";
 import { format } from "date-fns";
+import { Link } from "react-router-dom";
 
 export default function AdminComplaints() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -102,7 +102,9 @@ export default function AdminComplaints() {
                       </TableCell>
                       <TableCell>{format(new Date(complaint.created_at), 'yyyy-MM-dd')}</TableCell>
                       <TableCell>
-                        <Button size="sm" variant="outline">View Details</Button>
+                        <Button size="sm" variant="outline" asChild>
+                          <Link to={`/complaint-details/${complaint.id}`}>View Details</Link>
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}

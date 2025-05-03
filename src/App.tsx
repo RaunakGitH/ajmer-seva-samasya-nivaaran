@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import SubmitComplaint from "./pages/SubmitComplaint";
 import ComplaintSuccess from "./pages/ComplaintSuccess";
 import Complaints from "./pages/Complaints";
+import ComplaintDetails from "./pages/ComplaintDetails";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import AdminLogin from "./pages/AdminLogin";
@@ -49,6 +50,7 @@ const App = () => (
           <Route path="/submit-complaint" element={<SubmitComplaint />} />
           <Route path="/complaint-success" element={<ComplaintSuccess />} />
           <Route path="/complaints" element={<Complaints />} />
+          <Route path="/complaint-details/:id" element={<ComplaintDetails />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           
