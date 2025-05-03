@@ -15,7 +15,7 @@ import { Search, Send, Paperclip, Smile } from "lucide-react";
 
 // Mock data for chat
 const contacts = [
-  { id: '1', name: 'Sanitation Department', avatar: '/placeholder.svg', status: 'online', lastSeen: 'online', unread: 0, lastMessage: 'We'll look into the garbage collection issue right away.' },
+  { id: '1', name: 'Sanitation Department', avatar: '/placeholder.svg', status: 'online', lastSeen: 'online', unread: 0, lastMessage: "We'll look into the garbage collection issue right away." },
   { id: '2', name: 'Road Maintenance Crew', avatar: '/placeholder.svg', status: 'online', lastSeen: 'online', unread: 3, lastMessage: 'The pothole repair has been scheduled for tomorrow.' },
   { id: '3', name: 'Parks Department', avatar: '/placeholder.svg', status: 'offline', lastSeen: '2 hours ago', unread: 0, lastMessage: 'Thank you for the feedback on the park renovations.' },
   { id: '4', name: 'Water Department', avatar: '/placeholder.svg', status: 'offline', lastSeen: '4 hours ago', unread: 0, lastMessage: 'The water supply will be restored within 3 hours.' },
@@ -28,8 +28,8 @@ const mockMessages = [
   { id: '2', sender: 'me', text: 'Hi there. I wanted to check on the progress of the garbage collection complaint in Green Park area.', time: '10:33 AM' },
   { id: '3', sender: 'other', text: 'Let me check that for you. Just a moment please.', time: '10:34 AM' },
   { id: '4', sender: 'other', text: 'I can see the complaint has been assigned to our sanitation team. They have scheduled a pickup for today at 2:00 PM.', time: '10:36 AM' },
-  { id: '5', sender: 'me', text: 'That sounds good. Could you also make sure they check the recycling bins? Those haven't been emptied in two weeks.', time: '10:38 AM' },
-  { id: '6', sender: 'other', text: 'I've made a note of that and added it to the work order. Is there anything else you would like me to address?', time: '10:40 AM' },
+  { id: '5', sender: 'me', text: "That sounds good. Could you also make sure they check the recycling bins? Those haven't been emptied in two weeks.", time: '10:38 AM' },
+  { id: '6', sender: 'other', text: "I've made a note of that and added it to the work order. Is there anything else you would like me to address?", time: '10:40 AM' },
 ];
 
 export default function AdminChat() {
