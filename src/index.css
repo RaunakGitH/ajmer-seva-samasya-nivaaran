@@ -14,7 +14,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 262 83% 58%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -31,7 +31,7 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 262 83% 58%;
 
     --radius: 0.5rem;
 
@@ -54,4 +54,29 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Custom styles for contact page based on screenshots */
+.contact-card {
+  @apply bg-dark rounded-lg p-6 text-white;
+}
+
+.contact-form-container {
+  @apply bg-dark rounded-lg p-6 text-white;
+}
+
+.contact-form-button {
+  @apply bg-purple text-white hover:bg-purple-dark transition-colors;
+}
+
+.contact-info-icon {
+  @apply text-purple;
+}
+
+.section-heading {
+  @apply text-purple text-3xl font-bold mb-2;
+}
+
+.section-subheading {
+  @apply text-gray-400 mb-8;
 }

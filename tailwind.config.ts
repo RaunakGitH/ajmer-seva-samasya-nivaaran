@@ -25,7 +25,9 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: '#8B5CF6', // Vibrant purple for primary actions
+					DEFAULT: '#8B5CF6', // Vivid purple for primary actions
+					light: '#A78BFA',
+					dark: '#7C3AED',
 					foreground: 'hsl(var(--primary-foreground))'
 				},
 				secondary: {
@@ -61,6 +63,18 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// New dark theme colors based on the screenshots
+				dark: {
+					DEFAULT: '#1E2331', // Dark blue-gray for backgrounds
+					lighter: '#232838',
+					foreground: '#FFFFFF',
+					muted: '#9CA3AF'
+				},
+				purple: {
+					DEFAULT: '#8B5CF6', // Main purple
+					light: '#A78BFA',
+					dark: '#7C3AED',
 				}
 			},
 			borderRadius: {
