@@ -51,9 +51,22 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { Enums } from "@/integrations/supabase/types";
+
+// Define a consistent user type to use throughout the component
+type UserType = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  phone: string | null;
+  status: string;
+  created: string;
+  avatar?: string | null;
+};
 
 // Sample user data (replace with actual data from Supabase)
-const mockUsers = [
+const mockUsers: UserType[] = [
   { 
     id: '1', 
     name: 'Jane Citizen', 
@@ -97,7 +110,7 @@ export default function AdminUsers() {
   const [showUserForm, setShowUserForm] = useState(false);
   const { toast } = useToast();
 
-  // Fetch users from Supabase
+  // Fetch users from Supabase and map them to our consistent UserType format
   const { data: users = mockUsers, isLoading, error, refetch } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
@@ -108,7 +121,22 @@ export default function AdminUsers() {
           .order("created_at", { ascending: false });
           
         if (error) throw error;
-        return data || mockUsers;
+        
+        // Map Supabase data to our consistent UserType format
+        if (data) {
+          return data.map(user => ({
+            id: user.id,
+            name: user.full_name || user.email || 'Unknown',
+            email: user.email || '',
+            role: user.role,
+            phone: user.phone,
+            status: 'active', // Default status since we don't have this in the profile table
+            created: new Date(user.created_at).toISOString().split('T')[0],
+            avatar: user.avatar_url
+          }));
+        }
+        
+        return mockUsers; // Fallback to mock data
       } catch (error) {
         console.error("Error fetching users:", error);
         return mockUsers; // Fallback to mock data
@@ -289,7 +317,11 @@ export default function AdminUsers() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar>
-                          <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                          {user.avatar ? (
+                            <AvatarImage src={user.avatar} alt={user.name} />
+                          ) : (
+                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                          )}
                         </Avatar>
                         <div>
                           <p className="font-medium">{user.name}</p>
@@ -312,7 +344,7 @@ export default function AdminUsers() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={user.role === "Admin" ? "default" : user.role === "Staff" ? "outline" : "secondary"}>
+                      <Badge variant={user.role.toLowerCase() === "admin" ? "default" : user.role.toLowerCase() === "staff" ? "outline" : "secondary"}>
                         {user.role}
                       </Badge>
                     </TableCell>
