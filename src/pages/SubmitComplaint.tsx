@@ -71,9 +71,9 @@ const SubmitComplaint = () => {
     setCategory(selectedCategory);
   }, []);
 
-  // Direct title setter function without using a callback wrapper
+  // Simple function for setting the title directly
   const handleTitleChange = (value: string) => {
-    console.log("Title changed:", value); // Add logging to debug
+    console.log("Title changed:", value); 
     setTitle(value);
   };
 

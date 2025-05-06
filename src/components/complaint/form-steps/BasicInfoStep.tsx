@@ -21,7 +21,9 @@ interface BasicInfoStepProps {
 }
 
 export function BasicInfoStep({ title, setTitle, category, onCategorySelect, error }: BasicInfoStepProps) {
+  // Use a direct event handler that calls the passed setTitle function
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("Input value changing to:", e.target.value);
     setTitle(e.target.value);
   };
 
