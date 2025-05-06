@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSupabaseSession } from "@/utils/supabaseAuth";
@@ -70,6 +69,11 @@ const SubmitComplaint = () => {
 
   const handleCategorySelection = useCallback((selectedCategory: Category) => {
     setCategory(selectedCategory);
+  }, []);
+
+  // Handle title changes
+  const handleTitleChange = useCallback((value: string) => {
+    setTitle(value);
   }, []);
 
   const nextStep = () => {
@@ -210,7 +214,7 @@ const SubmitComplaint = () => {
         return (
           <BasicInfoStep
             title={title}
-            setTitle={setTitle}
+            setTitle={handleTitleChange}
             category={category}
             onCategorySelect={handleCategorySelection}
             error={submitError}
