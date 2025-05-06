@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSupabaseSession } from "@/utils/supabaseAuth";
@@ -71,14 +72,19 @@ const SubmitComplaint = () => {
     setCategory(selectedCategory);
   }, []);
 
-  // Simple function for setting the title directly
+  // Updated title change handler to properly handle the string input
   const handleTitleChange = (value: string) => {
-    console.log("Title changed:", value); 
+    console.log("Title changed to:", value); 
     setTitle(value);
   };
 
   const nextStep = () => {
+    console.log("Next button clicked. Current step:", activeStep);
+    console.log("Current title:", title);
+    console.log("Current category:", category);
+    
     if (activeStep === 0 && (!category || !title.trim())) {
+      console.log("Validation failed: Missing category or title");
       setSubmitError('Please select a category and provide a title for your complaint');
       return;
     }
@@ -94,6 +100,7 @@ const SubmitComplaint = () => {
     }
     
     setSubmitError(null);
+    console.log("Moving to next step");
     setActiveStep((prev) => Math.min(prev + 1, steps.length - 1));
   };
 
