@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSupabaseSession } from "@/utils/supabaseAuth";
@@ -72,7 +71,6 @@ const SubmitComplaint = () => {
     setCategory(selectedCategory);
   }, []);
 
-  // Updated title change handler to properly handle the string input
   const handleTitleChange = (value: string) => {
     console.log("Title changed to:", value); 
     setTitle(value);

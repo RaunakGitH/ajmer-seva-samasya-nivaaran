@@ -35,7 +35,7 @@ export function BasicInfoStep({ title, setTitle, category, onCategorySelect, err
           placeholder="Enter a brief title for your complaint"
           value={title}
           onChange={handleTitleChange}
-          className="border-gray-200 dark:border-gray-700 focus:border-purple-300 dark:focus:border-purple-400"
+          className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 focus:border-purple-300 dark:focus:border-purple-400 text-gray-900 dark:text-gray-100"
         />
       </div>
       
