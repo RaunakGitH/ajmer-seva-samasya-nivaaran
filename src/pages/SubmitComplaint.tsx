@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSupabaseSession } from "@/utils/supabaseAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +39,19 @@ const SubmitComplaint = () => {
   const [location, setLocation] = useState<Location | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Check authentication on component mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        toast.error("Please log in to submit a complaint");
+        navigate("/auth", { state: { redirectTo: "/submit-complaint" } });
+      }
+    };
+    
+    checkAuth();
+  }, [navigate]);
 
   const steps = [
     { title: 'Basic Info', description: 'Category & Title' },
@@ -95,25 +108,56 @@ const SubmitComplaint = () => {
       setIsSubmitting(true);
       setSubmitError(null);
 
-      if (!session?.user) {
+      // Double check session
+      const { data } = await supabase.auth.getSession();
+      if (!data.session?.user) {
         setSubmitError("Please log in to submit your complaint.");
+        toast.error("Authentication required", { 
+          description: "Please log in to submit your complaint" 
+        });
         setIsSubmitting(false);
+        navigate("/auth", { state: { redirectTo: "/submit-complaint" } });
         return;
       }
 
+      console.log("Starting submission process with user:", data.session.user.id);
+      
       // 1. Upload files, if any, to Supabase Storage "complaints-media"
       let mediaUrls: string[] = [];
       if (files.length > 0) {
+        console.log(`Uploading ${files.length} files`);
         for (const file of files) {
           const fileExt = file.name.split('.').pop();
-          const newFileName = `${session.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+          const newFileName = `${data.session.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+          
+          // Check if storage bucket exists, create if not
+          const { data: buckets } = await supabase.storage.listBuckets();
+          const complaintsBucket = buckets?.find(b => b.name === "complaints-media");
+          
+          if (!complaintsBucket) {
+            console.log("Creating complaints-media bucket");
+            const { error: bucketError } = await supabase.storage.createBucket("complaints-media", {
+              public: true,
+              fileSizeLimit: 10485760, // 10MB
+            });
+            
+            if (bucketError) {
+              console.error("Error creating bucket:", bucketError);
+              throw new Error("Failed to create storage bucket: " + bucketError.message);
+            }
+          }
+          
           const { data, error } = await supabase.storage
             .from("complaints-media")
             .upload(newFileName, file);
 
           if (error) {
+            console.error("Upload error:", error);
             throw new Error("Failed to upload attachment: " + error.message);
           }
+          
+          console.log("File uploaded successfully:", data?.path);
+          
           // Build the public URL for the file
           const { data: publicUrlData } = supabase.storage
             .from("complaints-media")
@@ -122,12 +166,14 @@ const SubmitComplaint = () => {
           mediaUrls.push(publicUrlData.publicUrl);
         }
       }
+      
+      console.log("Media URLs:", mediaUrls);
 
       // 2. Store complaint in "complaints" table
-      const { error: insertError } = await supabase
+      const { data: insertData, error: insertError } = await supabase
         .from("complaints")
         .insert({
-          user_id: session.user.id,
+          user_id: data.session.user.id,
           category: category?.name ?? "",
           description,
           location_lat: location?.lat ?? null,
@@ -135,17 +181,22 @@ const SubmitComplaint = () => {
           media_urls: mediaUrls.length > 0 ? mediaUrls : null,
           status: "Pending",
           // created_at and updated_at are handled by defaults
-        });
+        })
+        .select();
 
       if (insertError) {
+        console.error("Insert error:", insertError);
         throw new Error("Failed to submit complaint: " + insertError.message);
       }
 
+      console.log("Complaint submitted successfully:", insertData);
       toast.success("Complaint submitted successfully!");
       navigate('/complaint-success');
     } catch (error: any) {
       console.error('Error submitting complaint:', error);
-      toast.error(error.message ?? 'There was an error submitting your complaint');
+      toast.error("Submission Failed", {
+        description: error.message ?? 'There was an error submitting your complaint'
+      });
       setSubmitError(error.message ?? 'There was an error submitting your complaint. Please try again.');
     } finally {
       setIsSubmitting(false);
