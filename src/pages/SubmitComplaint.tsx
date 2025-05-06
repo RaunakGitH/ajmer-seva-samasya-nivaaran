@@ -71,10 +71,11 @@ const SubmitComplaint = () => {
     setCategory(selectedCategory);
   }, []);
 
-  // Handle title changes
-  const handleTitleChange = useCallback((value: string) => {
+  // Direct title setter function without using a callback wrapper
+  const handleTitleChange = (value: string) => {
+    console.log("Title changed:", value); // Add logging to debug
     setTitle(value);
-  }, []);
+  };
 
   const nextStep = () => {
     if (activeStep === 0 && (!category || !title.trim())) {
