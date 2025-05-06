@@ -72,10 +72,6 @@ const SubmitComplaint = () => {
     setCategory(selectedCategory);
   }, []);
 
-  const handleTitleChange = useCallback((newTitle: string) => {
-    setTitle(newTitle);
-  }, []);
-
   const nextStep = () => {
     if (activeStep === 0 && (!category || !title.trim())) {
       setSubmitError('Please select a category and provide a title for your complaint');
@@ -214,7 +210,7 @@ const SubmitComplaint = () => {
         return (
           <BasicInfoStep
             title={title}
-            setTitle={handleTitleChange}
+            setTitle={setTitle}
             category={category}
             onCategorySelect={handleCategorySelection}
             error={submitError}
