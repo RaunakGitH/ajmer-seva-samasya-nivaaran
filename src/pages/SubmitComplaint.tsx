@@ -43,8 +43,8 @@ const SubmitComplaint = () => {
   // Check authentication on component mount
   useEffect(() => {
     const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
         toast.error("Please log in to submit a complaint");
         navigate("/auth", { state: { redirectTo: "/submit-complaint" } });
       }
@@ -109,8 +109,8 @@ const SubmitComplaint = () => {
       setSubmitError(null);
 
       // Double check session
-      const { data } = await supabase.auth.getSession();
-      if (!data.session?.user) {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session?.user) {
         setSubmitError("Please log in to submit your complaint.");
         toast.error("Authentication required", { 
           description: "Please log in to submit your complaint" 
@@ -120,7 +120,7 @@ const SubmitComplaint = () => {
         return;
       }
 
-      console.log("Starting submission process with user:", data.session.user.id);
+      console.log("Starting submission process with user:", sessionData.session.user.id);
       
       // 1. Upload files, if any, to Supabase Storage "complaints-media"
       let mediaUrls: string[] = [];
@@ -128,7 +128,7 @@ const SubmitComplaint = () => {
         console.log(`Uploading ${files.length} files`);
         for (const file of files) {
           const fileExt = file.name.split('.').pop();
-          const newFileName = `${data.session.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+          const newFileName = `${sessionData.session.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
           
           // Check if storage bucket exists, create if not
           const { data: buckets } = await supabase.storage.listBuckets();
@@ -147,7 +147,7 @@ const SubmitComplaint = () => {
             }
           }
           
-          const { data, error } = await supabase.storage
+          const { data: uploadData, error } = await supabase.storage
             .from("complaints-media")
             .upload(newFileName, file);
 
@@ -156,7 +156,7 @@ const SubmitComplaint = () => {
             throw new Error("Failed to upload attachment: " + error.message);
           }
           
-          console.log("File uploaded successfully:", data?.path);
+          console.log("File uploaded successfully:", uploadData?.path);
           
           // Build the public URL for the file
           const { data: publicUrlData } = supabase.storage
@@ -173,7 +173,7 @@ const SubmitComplaint = () => {
       const { data: insertData, error: insertError } = await supabase
         .from("complaints")
         .insert({
-          user_id: data.session.user.id,
+          user_id: sessionData.session.user.id,
           category: category?.name ?? "",
           description,
           location_lat: location?.lat ?? null,
