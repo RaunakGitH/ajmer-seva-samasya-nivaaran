@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Loader, ArrowRight, FileText, AlertTriangle, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useUserComplaints } from "@/hooks/useUserComplaints";
+import { SimplifiedComplaintForm } from "@/components/complaint/SimplifiedComplaintForm";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const HEADER_IMAGE =
   "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1920&q=80";
@@ -51,7 +53,7 @@ export default function CitizenDashboard() {
         </div>
       </div>
 
-      {/* Quick Actions */}
+      {/* Dashboard Content */}
       <div className="max-w-5xl mx-auto px-4 -mt-20 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="transform hover:-translate-y-1 transition-all duration-200 hover:shadow-xl bg-white/95 backdrop-blur">
@@ -88,75 +90,89 @@ export default function CitizenDashboard() {
         </div>
       </div>
 
-      {/* Recent Complaints */}
+      {/* Tabs for Complaints and Quick Submit */}
       <div className="max-w-4xl mx-auto mt-16 px-4 pb-20">
-        <h2 className="text-2xl font-semibold mb-6 text-gray-800">Recent Complaints</h2>
-        {isLoading ? (
-          <div className="flex justify-center py-10">
-            <Loader className="w-6 h-6 animate-spin text-primary" />
-          </div>
-        ) : error ? (
-          <Card className="p-6 text-red-500 text-center bg-red-50">
-            <p>{error.message}</p>
-          </Card>
-        ) : complaints.length === 0 ? (
-          <Card className="p-8 text-center bg-gray-50">
-            <p className="text-gray-600">No complaints submitted yet.</p>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {complaints.slice(0, 3).map((complaint: any) => (
-              <Card key={complaint.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <div>
-                    <CardTitle className="text-xl font-semibold">{complaint.category}</CardTitle>
-                    <CardDescription className="text-sm">
-                      {new Date(complaint.created_at).toLocaleDateString()}
-                    </CardDescription>
-                  </div>
-                  <Badge className={`${statusColor(complaint.status)} border flex gap-2 items-center px-3 py-1`}>
-                    {statusIcon(complaint.status)}
-                    {complaint.status}
-                  </Badge>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700 mb-4">{complaint.description}</p>
-                  {complaint.media_urls && complaint.media_urls.length > 0 && (
-                    <div className="flex gap-2 flex-wrap">
-                      {complaint.media_urls.map((url: string) => (
-                        <a
-                          key={url}
-                          href={url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block"
-                        >
-                          <img
-                            src={url}
-                            alt="Attachment"
-                            className="w-24 h-20 object-cover rounded-lg hover:opacity-90 transition-opacity"
-                            loading="lazy"
-                          />
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
+        <Tabs defaultValue="recent-complaints" className="space-y-6">
+          <TabsList className="grid grid-cols-2 w-full mb-6">
+            <TabsTrigger value="recent-complaints">Recent Complaints</TabsTrigger>
+            <TabsTrigger value="quick-submit">Quick Submit</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="recent-complaints">
+            <h2 className="text-2xl font-semibold mb-6 text-gray-800">Recent Complaints</h2>
+            {isLoading ? (
+              <div className="flex justify-center py-10">
+                <Loader className="w-6 h-6 animate-spin text-primary" />
+              </div>
+            ) : error ? (
+              <Card className="p-6 text-red-500 text-center bg-red-50">
+                <p>{error.message}</p>
               </Card>
-            ))}
-          </div>
-        )}
-        {complaints.length > 3 && (
-          <div className="mt-6 text-center">
-            <Link
-              to="/complaints"
-              className="inline-flex items-center text-primary hover:text-primary/80 transition-colors"
-            >
-              View all complaints
-              <ArrowRight className="ml-2 w-4 h-4" />
-            </Link>
-          </div>
-        )}
+            ) : complaints.length === 0 ? (
+              <Card className="p-8 text-center bg-gray-50">
+                <p className="text-gray-600">No complaints submitted yet.</p>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {complaints.slice(0, 3).map((complaint: any) => (
+                  <Card key={complaint.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <div>
+                        <CardTitle className="text-xl font-semibold">{complaint.category}</CardTitle>
+                        <CardDescription className="text-sm">
+                          {new Date(complaint.created_at).toLocaleDateString()}
+                        </CardDescription>
+                      </div>
+                      <Badge className={`${statusColor(complaint.status)} border flex gap-2 items-center px-3 py-1`}>
+                        {statusIcon(complaint.status)}
+                        {complaint.status}
+                      </Badge>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-gray-700 mb-4">{complaint.description}</p>
+                      {complaint.media_urls && complaint.media_urls.length > 0 && (
+                        <div className="flex gap-2 flex-wrap">
+                          {complaint.media_urls.map((url: string) => (
+                            <a
+                              key={url}
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block"
+                            >
+                              <img
+                                src={url}
+                                alt="Attachment"
+                                className="w-24 h-20 object-cover rounded-lg hover:opacity-90 transition-opacity"
+                                loading="lazy"
+                              />
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+            {complaints.length > 3 && (
+              <div className="mt-6 text-center">
+                <Link
+                  to="/complaints"
+                  className="inline-flex items-center text-primary hover:text-primary/80 transition-colors"
+                >
+                  View all complaints
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </Link>
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="quick-submit">
+            <h2 className="text-2xl font-semibold mb-6 text-gray-800">Quick Submit Complaint</h2>
+            <SimplifiedComplaintForm />
+          </TabsContent>
+        </Tabs>
       </div>
     </main>
   );
