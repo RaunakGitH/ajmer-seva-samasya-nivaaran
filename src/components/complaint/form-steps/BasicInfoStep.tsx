@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CategorySelector } from '@/components/complaint/category-selector';
+import { ErrorDisplay } from '@/components/complaint/ErrorDisplay';
 
 interface Category {
   id: string;
@@ -20,6 +21,10 @@ interface BasicInfoStepProps {
 }
 
 export function BasicInfoStep({ title, setTitle, category, onCategorySelect, error }: BasicInfoStepProps) {
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value);
+  };
+
   return (
     <div className="space-y-6">
       <div className="space-y-3">
@@ -28,7 +33,7 @@ export function BasicInfoStep({ title, setTitle, category, onCategorySelect, err
           id="complaint-title"
           placeholder="Enter a brief title for your complaint"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={handleTitleChange}
           className="border-gray-200 dark:border-gray-700 focus:border-purple-300 dark:focus:border-purple-400"
         />
       </div>
@@ -41,18 +46,7 @@ export function BasicInfoStep({ title, setTitle, category, onCategorySelect, err
         />
       </div>
 
-      {error && (
-        <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg flex items-start">
-          <div className="h-5 w-5 text-red-500 mr-2 mt-0.5">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="12"></line>
-              <line x1="12" y1="16" x2="12" y2="16"></line>
-            </svg>
-          </div>
-          <span>{error}</span>
-        </div>
-      )}
+      {error && <ErrorDisplay error={error} />}
     </div>
   );
 }
