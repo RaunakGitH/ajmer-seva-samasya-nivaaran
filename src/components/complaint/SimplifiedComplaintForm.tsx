@@ -8,12 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { CategorySelector } from '@/components/complaint/category-selector';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface Category {
   id: string;
   name: string;
-  icon: React.ReactNode;
   description: string;
 }
 
@@ -22,8 +21,18 @@ export function SimplifiedComplaintForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState<Category | null>(null);
+  const [categoryId, setCategoryId] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
+
+  const categories: Category[] = [
+    { id: 'road', name: 'Road', description: 'Potholes, damaged roads, traffic issues' },
+    { id: 'garbage', name: 'Garbage', description: 'Waste collection, dumping issues, cleanliness' },
+    { id: 'water', name: 'Water', description: 'Water supply, leakage, quality issues' },
+    { id: 'electricity', name: 'Electricity', description: 'Power outages, street lights, electrical hazards' },
+    { id: 'property', name: 'Property', description: 'Illegal construction, encroachment, property disputes' },
+    { id: 'environment', name: 'Environment', description: 'Air pollution, noise pollution, tree cutting' },
+    { id: 'other', name: 'Other', description: 'Other civic issues not listed above' }
+  ];
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
@@ -33,8 +42,8 @@ export function SimplifiedComplaintForm() {
     setDescription(e.target.value);
   };
 
-  const handleCategorySelect = (selectedCategory: Category) => {
-    setCategory(selectedCategory);
+  const handleCategoryChange = (value: string) => {
+    setCategoryId(value);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -50,7 +59,7 @@ export function SimplifiedComplaintForm() {
       return;
     }
     
-    if (!category) {
+    if (!categoryId) {
       setError('Please select a category for your complaint');
       return;
     }
@@ -71,12 +80,15 @@ export function SimplifiedComplaintForm() {
         return;
       }
 
+      // Get the selected category name
+      const selectedCategory = categories.find(cat => cat.id === categoryId);
+      
       // Submit complaint to Supabase
       const { data, error: insertError } = await supabase
         .from("complaints")
         .insert({
           user_id: sessionData.session.user.id,
-          category: category.name,
+          category: selectedCategory?.name || categoryId,
           description,
           status: "Pending",
         })
@@ -89,7 +101,7 @@ export function SimplifiedComplaintForm() {
       toast.success("Complaint submitted successfully!");
       setTitle('');
       setDescription('');
-      setCategory(null);
+      setCategoryId('');
       
       // Redirect to dashboard or detailed view
       navigate('/citizen-dashboard');
@@ -135,13 +147,22 @@ export function SimplifiedComplaintForm() {
           </div>
           
           <div className="space-y-2">
-            <Label>Category</Label>
-            <div className="mt-2">
-              <CategorySelector
-                onSelect={handleCategorySelect}
-                selectedCategoryId={category?.id || null}
-              />
-            </div>
+            <Label htmlFor="quick-complaint-category">Category</Label>
+            <Select 
+              value={categoryId} 
+              onValueChange={handleCategoryChange}
+            >
+              <SelectTrigger id="quick-complaint-category" className="w-full bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                {categories.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.id} className="text-gray-900 dark:text-gray-100">
+                    {cat.name} - {cat.description}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {error && (

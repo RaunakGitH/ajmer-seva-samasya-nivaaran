@@ -52,6 +52,7 @@ const SubmitComplaint = () => {
     checkAuth();
   }, [navigate]);
 
+  // Define step titles and descriptions
   const steps = [
     { title: 'Basic Info', description: 'Category & Title' },
     { title: 'Details', description: 'Description & Media' },
@@ -68,6 +69,7 @@ const SubmitComplaint = () => {
   }, []);
 
   const handleCategorySelection = useCallback((selectedCategory: Category) => {
+    console.log("Category selected:", selectedCategory);
     setCategory(selectedCategory);
   }, []);
 
