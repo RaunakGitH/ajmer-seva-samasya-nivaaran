@@ -7,9 +7,16 @@ interface DetailsStepProps {
   setDescription: (value: string) => void;
   handleFileSelection: (files: File[]) => void;
   error: string | null;
+  isFileUploadDisabled?: boolean;
 }
 
-export function DetailsStep({ description, setDescription, handleFileSelection, error }: DetailsStepProps) {
+export function DetailsStep({ 
+  description, 
+  setDescription, 
+  handleFileSelection, 
+  error,
+  isFileUploadDisabled = false 
+}: DetailsStepProps) {
   return (
     <div className="space-y-8">
       <VoiceTextInput
@@ -23,7 +30,13 @@ export function DetailsStep({ description, setDescription, handleFileSelection, 
         <FileUploader
           onFilesSelected={handleFileSelection}
           maxFiles={3}
+          disabled={isFileUploadDisabled}
         />
+        {isFileUploadDisabled && (
+          <p className="text-sm text-amber-600 bg-amber-50 p-2 rounded">
+            ⚠️ Note: Due to a current issue with Supabase, images cannot be uploaded directly through the citizen complaint form
+          </p>
+        )}
       </div>
 
       {error && (

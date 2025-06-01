@@ -10,12 +10,14 @@ interface FileUploaderProps {
   onFilesSelected: (files: File[]) => void;
   maxFiles?: number;
   acceptedFileTypes?: string;
+  disabled?: boolean;
 }
 
 export function FileUploader({
   onFilesSelected,
   maxFiles = 3,
-  acceptedFileTypes = "image/*,video/*"
+  acceptedFileTypes = "image/*,video/*",
+  disabled = false
 }: FileUploaderProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
@@ -23,7 +25,7 @@ export function FileUploader({
 
   const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (!files) return;
+    if (!files || disabled) return;
 
     const newFiles = Array.from(files);
     if (selectedFiles.length + newFiles.length > maxFiles) {
@@ -31,8 +33,9 @@ export function FileUploader({
       return;
     }
 
-    setSelectedFiles(prev => [...prev, ...newFiles]);
-    onFilesSelected([...selectedFiles, ...newFiles]);
+    const updatedFiles = [...selectedFiles, ...newFiles];
+    setSelectedFiles(updatedFiles);
+    onFilesSelected(updatedFiles);
     
     // Generate previews
     newFiles.forEach(file => {
@@ -44,9 +47,14 @@ export function FileUploader({
       };
       reader.readAsDataURL(file);
     });
-  }, [selectedFiles, maxFiles, onFilesSelected]);
+
+    // Clear the input value to allow selecting the same file again
+    event.target.value = '';
+  }, [selectedFiles, maxFiles, onFilesSelected, disabled]);
 
   const removeFile = (index: number) => {
+    if (disabled) return;
+    
     const newFiles = [...selectedFiles];
     newFiles.splice(index, 1);
     setSelectedFiles(newFiles);
@@ -58,16 +66,19 @@ export function FileUploader({
   };
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    if (disabled) return;
     e.preventDefault();
     setIsDragging(true);
-  }, []);
+  }, [disabled]);
 
   const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    if (disabled) return;
     e.preventDefault();
     setIsDragging(false);
-  }, []);
+  }, [disabled]);
 
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    if (disabled) return;
     e.preventDefault();
     setIsDragging(false);
     
@@ -80,8 +91,9 @@ export function FileUploader({
       return;
     }
     
-    setSelectedFiles(prev => [...prev, ...newFiles]);
-    onFilesSelected([...selectedFiles, ...newFiles]);
+    const updatedFiles = [...selectedFiles, ...newFiles];
+    setSelectedFiles(updatedFiles);
+    onFilesSelected(updatedFiles);
     
     // Generate previews
     newFiles.forEach(file => {
@@ -93,15 +105,38 @@ export function FileUploader({
       };
       reader.readAsDataURL(file);
     });
-  }, [selectedFiles, maxFiles, onFilesSelected]);
+  }, [selectedFiles, maxFiles, onFilesSelected, disabled]);
 
   const isVideo = (file: File) => file.type.startsWith('video/');
+
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!disabled) {
+      document.getElementById('file-upload')?.click();
+    }
+  };
+
+  if (disabled) {
+    return (
+      <div className="space-y-4">
+        <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center bg-gray-50">
+          <Upload className="h-10 w-10 text-gray-300 mb-2 mx-auto" />
+          <p className="text-gray-400 mb-1">
+            File upload temporarily disabled
+          </p>
+          <p className="text-xs text-gray-400">
+            Due to a current issue with Supabase, images cannot be uploaded directly
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
       <div
         className={cn(
-          "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer",
+          "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
           isDragging ? "border-primary bg-primary/5" : "border-gray-300 hover:border-primary/50",
           selectedFiles.length >= maxFiles ? "opacity-50 pointer-events-none" : ""
         )}
@@ -136,7 +171,7 @@ export function FileUploader({
               className="mt-4"
               type="button"
               disabled={selectedFiles.length >= maxFiles}
-              onClick={() => document.getElementById('file-upload')?.click()}
+              onClick={handleButtonClick}
             >
               Select Files
             </Button>

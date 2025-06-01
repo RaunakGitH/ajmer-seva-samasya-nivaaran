@@ -13,6 +13,7 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import AdminLogin from "./pages/AdminLogin";
 import NotFound from "./pages/NotFound";
+import EscalationFormPage from "./pages/EscalationForm";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminUsers from "@/pages/admin/AdminUsers";
@@ -67,6 +68,7 @@ const App = () => (
           <Route path="/complaint-success" element={<ComplaintSuccess />} />
           <Route path="/complaints" element={<Complaints />} />
           <Route path="/complaint-details/:id" element={<ComplaintDetails />} />
+          <Route path="/escalation-form" element={<EscalationFormPage />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           
