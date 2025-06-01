@@ -38,6 +38,7 @@ const SubmitComplaint = () => {
   const [location, setLocation] = useState<Location | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
 
   // Check authentication on component mount
   useEffect(() => {
@@ -51,6 +52,24 @@ const SubmitComplaint = () => {
     
     checkAuth();
   }, [navigate]);
+
+  // Check if storage bucket exists
+  useEffect(() => {
+    const checkStorageConfig = async () => {
+      try {
+        const { data, error } = await supabase.storage.getBucket('complaints-media');
+        if (error || !data) {
+          console.log("Storage bucket not configured, disabling file uploads");
+          setIsFileUploadDisabled(true);
+        }
+      } catch (error) {
+        console.log("Storage configuration check failed, disabling file uploads");
+        setIsFileUploadDisabled(true);
+      }
+    };
+    
+    checkStorageConfig();
+  }, []);
 
   // Define step titles and descriptions
   const steps = [
@@ -134,33 +153,41 @@ const SubmitComplaint = () => {
 
       console.log("Starting submission process with user:", sessionData.session.user.id);
       
-      // 1. Upload files, if any, to Supabase Storage "complaints-media"
+      // 1. Upload files only if storage is available and files exist
       let mediaUrls: string[] = [];
-      if (files.length > 0) {
-        console.log(`Uploading ${files.length} files`);
-        for (const file of files) {
-          const fileExt = file.name.split('.').pop();
-          const newFileName = `${sessionData.session.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
-          
-          console.log("Attempting to upload file:", newFileName);
-          
-          const { data: uploadData, error } = await supabase.storage
-            .from("complaints-media")
-            .upload(newFileName, file);
+      if (files.length > 0 && !isFileUploadDisabled) {
+        try {
+          console.log(`Uploading ${files.length} files`);
+          for (const file of files) {
+            const fileExt = file.name.split('.').pop();
+            const newFileName = `${sessionData.session.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+            
+            console.log("Attempting to upload file:", newFileName);
+            
+            const { data: uploadData, error } = await supabase.storage
+              .from("complaints-media")
+              .upload(newFileName, file);
 
-          if (error) {
-            console.error("Upload error:", error);
-            throw new Error("Failed to upload attachment: " + error.message);
+            if (error) {
+              console.error("Upload error:", error);
+              throw new Error("Failed to upload attachment: " + error.message);
+            }
+            
+            console.log("File uploaded successfully:", uploadData?.path);
+            
+            // Build the public URL for the file
+            const { data: publicUrlData } = supabase.storage
+              .from("complaints-media")
+              .getPublicUrl(newFileName);
+
+            mediaUrls.push(publicUrlData.publicUrl);
           }
-          
-          console.log("File uploaded successfully:", uploadData?.path);
-          
-          // Build the public URL for the file
-          const { data: publicUrlData } = supabase.storage
-            .from("complaints-media")
-            .getPublicUrl(newFileName);
-
-          mediaUrls.push(publicUrlData.publicUrl);
+        } catch (uploadError: any) {
+          console.error("File upload failed:", uploadError);
+          // Continue with submission without files rather than failing completely
+          toast.error("File upload failed", {
+            description: "Your complaint will be submitted without attachments"
+          });
         }
       }
       
@@ -220,6 +247,7 @@ const SubmitComplaint = () => {
             setDescription={setDescription}
             handleFileSelection={handleFileSelection}
             error={submitError}
+            isFileUploadDisabled={isFileUploadDisabled}
           />
         );
       case 2:
