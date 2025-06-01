@@ -30,13 +30,8 @@ export function DetailsStep({
         <FileUploader
           onFilesSelected={handleFileSelection}
           maxFiles={3}
-          disabled={isFileUploadDisabled}
+          disabled={false}
         />
-        {isFileUploadDisabled && (
-          <p className="text-sm text-amber-600 bg-amber-50 p-2 rounded">
-            ⚠️ Note: Due to a current issue with Supabase, images cannot be uploaded directly through the citizen complaint form
-          </p>
-        )}
       </div>
 
       {error && (

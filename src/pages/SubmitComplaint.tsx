@@ -142,22 +142,7 @@ const SubmitComplaint = () => {
           const fileExt = file.name.split('.').pop();
           const newFileName = `${sessionData.session.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
           
-          // Check if storage bucket exists, create if not
-          const { data: buckets } = await supabase.storage.listBuckets();
-          const complaintsBucket = buckets?.find(b => b.name === "complaints-media");
-          
-          if (!complaintsBucket) {
-            console.log("Creating complaints-media bucket");
-            const { error: bucketError } = await supabase.storage.createBucket("complaints-media", {
-              public: true,
-              fileSizeLimit: 10485760, // 10MB
-            });
-            
-            if (bucketError) {
-              console.error("Error creating bucket:", bucketError);
-              throw new Error("Failed to create storage bucket: " + bucketError.message);
-            }
-          }
+          console.log("Attempting to upload file:", newFileName);
           
           const { data: uploadData, error } = await supabase.storage
             .from("complaints-media")

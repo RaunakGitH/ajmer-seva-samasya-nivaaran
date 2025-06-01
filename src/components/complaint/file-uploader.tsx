@@ -116,29 +116,14 @@ export function FileUploader({
     }
   };
 
-  if (disabled) {
-    return (
-      <div className="space-y-4">
-        <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center bg-gray-50">
-          <Upload className="h-10 w-10 text-gray-300 mb-2 mx-auto" />
-          <p className="text-gray-400 mb-1">
-            File upload temporarily disabled
-          </p>
-          <p className="text-xs text-gray-400">
-            Due to a current issue with Supabase, images cannot be uploaded directly
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       <div
         className={cn(
           "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
           isDragging ? "border-primary bg-primary/5" : "border-gray-300 hover:border-primary/50",
-          selectedFiles.length >= maxFiles ? "opacity-50 pointer-events-none" : ""
+          selectedFiles.length >= maxFiles ? "opacity-50 pointer-events-none" : "",
+          disabled ? "opacity-50 pointer-events-none bg-gray-50" : ""
         )}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -151,30 +136,34 @@ export function FileUploader({
           multiple
           className="hidden"
           onChange={handleFileChange}
-          disabled={selectedFiles.length >= maxFiles}
+          disabled={disabled || selectedFiles.length >= maxFiles}
         />
         <Label htmlFor="file-upload" className="cursor-pointer">
           <div className="flex flex-col items-center justify-center">
-            <Upload className="h-10 w-10 text-gray-400 mb-2" />
+            <Upload className={cn("h-10 w-10 mb-2", disabled ? "text-gray-300" : "text-gray-400")} />
             <p className="text-lg font-medium mb-1">
-              Drag and drop files here or click to browse
+              {disabled ? "File upload temporarily disabled" : "Drag and drop files here or click to browse"}
             </p>
             <p className="text-sm text-gray-500">
-              Upload up to {maxFiles} images or videos
+              {disabled ? "Due to storage configuration issues" : `Upload up to ${maxFiles} images or videos`}
             </p>
-            <p className="text-xs text-gray-400 mt-2">
-              Supported formats: JPG, PNG, MP4, MOV (Max 10MB per file)
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-4"
-              type="button"
-              disabled={selectedFiles.length >= maxFiles}
-              onClick={handleButtonClick}
-            >
-              Select Files
-            </Button>
+            {!disabled && (
+              <>
+                <p className="text-xs text-gray-400 mt-2">
+                  Supported formats: JPG, PNG, MP4, MOV (Max 10MB per file)
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-4"
+                  type="button"
+                  disabled={selectedFiles.length >= maxFiles}
+                  onClick={handleButtonClick}
+                >
+                  Select Files
+                </Button>
+              </>
+            )}
           </div>
         </Label>
       </div>
