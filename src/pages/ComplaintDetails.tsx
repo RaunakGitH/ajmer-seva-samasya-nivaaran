@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
@@ -45,13 +44,16 @@ const ComplaintDetails = () => {
   const isStaff = localStorage.getItem('staffAuth') === 'true';
   const canUpdateStatus = isAdmin || isStaff;
   
-  if (error) {
-    toast({
-      title: "Error",
-      description: "Failed to load complaint details. Please try again.",
-      variant: "destructive"
-    });
-  }
+  // Handle error in useEffect to avoid re-render loop
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load complaint details. Please try again.",
+        variant: "destructive"
+      });
+    }
+  }, [error, toast]);
   
   const getProgressPercent = (status: string) => {
     switch (status) {
