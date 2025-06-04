@@ -57,13 +57,22 @@ const SubmitComplaint = () => {
   useEffect(() => {
     const checkStorageConfig = async () => {
       try {
+        console.log("Checking for complaints-media bucket...");
         const { data, error } = await supabase.storage.getBucket('complaints-media');
-        if (error || !data) {
-          console.log("Storage bucket not configured, disabling file uploads");
+        console.log("Bucket check result:", { data, error });
+        
+        if (error) {
+          console.log("Bucket check error:", error.message);
+          setIsFileUploadDisabled(true);
+        } else if (data) {
+          console.log("Bucket found successfully:", data.name);
+          setIsFileUploadDisabled(false);
+        } else {
+          console.log("No bucket data returned");
           setIsFileUploadDisabled(true);
         }
       } catch (error) {
-        console.log("Storage configuration check failed, disabling file uploads");
+        console.error("Storage configuration check failed:", error);
         setIsFileUploadDisabled(true);
       }
     };
