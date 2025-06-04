@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/layout/navbar";
@@ -30,6 +31,7 @@ import { ComplaintUpdateForm } from "@/components/admin/ComplaintUpdateForm";
 import { ComplaintHistoryTimeline } from "@/components/admin/ComplaintHistoryTimeline";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { ComplaintLocationMap } from "@/components/complaint/ComplaintLocationMap";
 
 const ComplaintDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -211,6 +213,12 @@ const ComplaintDetails = () => {
                     >
                       <TabsList className="mb-4">
                         <TabsTrigger value="details">Details</TabsTrigger>
+                        {complaint.location_lat && complaint.location_lng && (
+                          <TabsTrigger value="location" className="flex items-center gap-1">
+                            <MapPin className="h-4 w-4" />
+                            Location
+                          </TabsTrigger>
+                        )}
                         {(canUpdateStatus && complaint.complaint_history) && (
                           <TabsTrigger value="history" className="flex items-center gap-1">
                             <HistoryIcon className="h-4 w-4" />
@@ -307,6 +315,15 @@ const ComplaintDetails = () => {
                           </>
                         )}
                       </TabsContent>
+                      
+                      {complaint.location_lat && complaint.location_lng && (
+                        <TabsContent value="location">
+                          <ComplaintLocationMap 
+                            latitude={complaint.location_lat}
+                            longitude={complaint.location_lng}
+                          />
+                        </TabsContent>
+                      )}
                       
                       {canUpdateStatus && (
                         <TabsContent value="history">
