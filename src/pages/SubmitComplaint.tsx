@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSupabaseSession } from "@/utils/supabaseAuth";
@@ -65,13 +66,9 @@ const SubmitComplaint = () => {
         if (error) {
           console.warn("Storage bucket issue:", error.message);
           setIsFileUploadDisabled(true);
-          
-          // Show user-friendly message about file upload being unavailable
-          if (error.message.includes('bucket') || error.message.includes('not found')) {
-            toast.error("File upload temporarily unavailable", {
-              description: "Storage is being configured. You can still submit complaints without files."
-            });
-          }
+          toast.error("File upload temporarily unavailable", {
+            description: "You can still submit complaints without files."
+          });
         } else {
           console.log("Storage bucket is accessible");
           setIsFileUploadDisabled(false);
@@ -167,7 +164,7 @@ const SubmitComplaint = () => {
 
       console.log("Starting submission process with user:", sessionData.session.user.id);
       
-      // 1. Upload files only if storage is available and files exist
+      // 1. Upload files if storage is available and files exist
       let mediaUrls: string[] = [];
       if (files.length > 0 && !isFileUploadDisabled) {
         try {

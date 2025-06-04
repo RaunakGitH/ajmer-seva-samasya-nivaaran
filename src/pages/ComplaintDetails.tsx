@@ -15,7 +15,9 @@ import {
   MessageSquare,
   ImageIcon,
   Loader2,
-  HistoryIcon
+  HistoryIcon,
+  Download,
+  Eye
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +30,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ComplaintUpdateForm } from "@/components/admin/ComplaintUpdateForm";
 import { ComplaintHistoryTimeline } from "@/components/admin/ComplaintHistoryTimeline";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 const ComplaintDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -79,6 +82,27 @@ const ComplaintDetails = () => {
     };
     
     return configs[status as keyof typeof configs] || configs['Pending'];
+  };
+  
+  const handleImageDownload = async (url: string, filename: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      toast({
+        title: "Download Failed",
+        description: "Could not download the image. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
   
   return (
@@ -206,17 +230,74 @@ const ComplaintDetails = () => {
                             <div>
                               <h3 className="text-lg font-semibold mb-4 flex items-center">
                                 <ImageIcon className="mr-2 h-5 w-5" />
-                                Attached Images
+                                Uploaded Evidence ({complaint.media_urls.length} file{complaint.media_urls.length > 1 ? 's' : ''})
                               </h3>
                               
-                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {complaint.media_urls.map((url, index) => (
-                                  <div key={index} className="relative aspect-square rounded-lg overflow-hidden border bg-gray-50">
-                                    <img 
-                                      src={url}
-                                      alt={`Complaint image ${index + 1}`}
-                                      className="object-cover w-full h-full"
-                                    />
+                                  <div key={index} className="relative group">
+                                    <div className="relative aspect-square rounded-lg overflow-hidden border bg-gray-50 shadow-sm">
+                                      <img 
+                                        src={url}
+                                        alt={`Evidence ${index + 1}`}
+                                        className="object-cover w-full h-full transition-transform group-hover:scale-105"
+                                        onError={(e) => {
+                                          console.error("Image failed to load:", url);
+                                          e.currentTarget.src = "/placeholder.svg";
+                                        }}
+                                      />
+                                      
+                                      {/* Overlay with actions for admins */}
+                                      {canUpdateStatus && (
+                                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                          <div className="flex gap-2">
+                                            <Dialog>
+                                              <DialogTrigger asChild>
+                                                <Button size="sm" variant="secondary" className="h-8 w-8 p-0">
+                                                  <Eye className="h-4 w-4" />
+                                                </Button>
+                                              </DialogTrigger>
+                                              <DialogContent className="max-w-4xl max-h-[90vh]">
+                                                <img 
+                                                  src={url} 
+                                                  alt={`Evidence ${index + 1} - Full Size`}
+                                                  className="w-full h-auto max-h-[80vh] object-contain"
+                                                />
+                                              </DialogContent>
+                                            </Dialog>
+                                            
+                                            <Button 
+                                              size="sm" 
+                                              variant="secondary" 
+                                              className="h-8 w-8 p-0"
+                                              onClick={() => handleImageDownload(url, `evidence-${index + 1}.jpg`)}
+                                            >
+                                              <Download className="h-4 w-4" />
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                    
+                                    <div className="mt-2 text-center">
+                                      <p className="text-xs text-gray-500">Evidence {index + 1}</p>
+                                      {canUpdateStatus && (
+                                        <Dialog>
+                                          <DialogTrigger asChild>
+                                            <Button variant="link" size="sm" className="h-auto p-0 text-xs">
+                                              View Full Size
+                                            </Button>
+                                          </DialogTrigger>
+                                          <DialogContent className="max-w-4xl max-h-[90vh]">
+                                            <img 
+                                              src={url} 
+                                              alt={`Evidence ${index + 1} - Full Size`}
+                                              className="w-full h-auto max-h-[80vh] object-contain"
+                                            />
+                                          </DialogContent>
+                                        </Dialog>
+                                      )}
+                                    </div>
                                   </div>
                                 ))}
                               </div>
