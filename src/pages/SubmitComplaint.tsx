@@ -53,26 +53,31 @@ const SubmitComplaint = () => {
     checkAuth();
   }, [navigate]);
 
-  // Check if storage bucket exists
+  // Check if storage bucket exists and is accessible
   useEffect(() => {
     const checkStorageConfig = async () => {
       try {
-        console.log("Checking for complaints-media bucket...");
-        const { data, error } = await supabase.storage.getBucket('complaints-media');
-        console.log("Bucket check result:", { data, error });
+        // Try to list files in the bucket to verify it exists and is accessible
+        const { data, error } = await supabase.storage
+          .from('complaints-media')
+          .list('', { limit: 1 });
         
         if (error) {
-          console.log("Bucket check error:", error.message);
+          console.warn("Storage bucket issue:", error.message);
           setIsFileUploadDisabled(true);
-        } else if (data) {
-          console.log("Bucket found successfully:", data.name);
-          setIsFileUploadDisabled(false);
+          
+          // Show user-friendly message about file upload being unavailable
+          if (error.message.includes('bucket') || error.message.includes('not found')) {
+            toast.error("File upload temporarily unavailable", {
+              description: "Storage is being configured. You can still submit complaints without files."
+            });
+          }
         } else {
-          console.log("No bucket data returned");
-          setIsFileUploadDisabled(true);
+          console.log("Storage bucket is accessible");
+          setIsFileUploadDisabled(false);
         }
       } catch (error) {
-        console.error("Storage configuration check failed:", error);
+        console.warn("Storage configuration check failed:", error);
         setIsFileUploadDisabled(true);
       }
     };
