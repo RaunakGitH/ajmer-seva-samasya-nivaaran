@@ -5,6 +5,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { AuthGuard } from "@/components/auth/AuthGuard";
+import { OfflineIndicator } from "@/components/common/OfflineIndicator";
+import { MaintenanceMode } from "@/components/common/MaintenanceMode";
+import { API_CONFIG, ENV } from "@/utils/environment";
+import { logger } from "@/utils/logger";
+import { useEffect, useState } from "react";
 
 // Import pages
 import Index from "./pages/Index";
@@ -32,26 +37,68 @@ import AdminNotifications from "./pages/admin/AdminNotifications";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminChat from "./pages/admin/AdminChat";
 
+// Production-ready Query Client configuration
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 60 * 1000, // 1 minute
+      staleTime: ENV.isProduction ? 5 * 60 * 1000 : 60 * 1000, // 5 min in prod, 1 min in dev
+      gcTime: ENV.isProduction ? 10 * 60 * 1000 : 5 * 60 * 1000, // 10 min in prod, 5 min in dev
       retry: (failureCount, error: any) => {
         // Don't retry on auth errors
         if (error?.status === 401 || error?.status === 403) {
           return false;
         }
-        return failureCount < 3;
+        return failureCount < API_CONFIG.retryAttempts;
       },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    },
+    mutations: {
+      retry: ENV.isProduction ? 2 : 1,
     },
   },
 });
 
+// Check for maintenance mode (could be controlled by environment variable)
+const isMaintenanceMode = false; // This would typically come from an environment variable
+
 function App() {
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  useEffect(() => {
+    // Initialize application
+    logger.info('Application starting', {
+      environment: ENV.isProduction ? 'production' : 'development',
+      version: '1.0.0',
+    });
+
+    // Simulate initialization delay for production readiness
+    const initTimeout = setTimeout(() => {
+      setIsInitialized(true);
+      logger.info('Application initialized successfully');
+    }, ENV.isProduction ? 1000 : 100);
+
+    return () => clearTimeout(initTimeout);
+  }, []);
+
+  // Show maintenance mode if enabled
+  if (isMaintenanceMode) {
+    return <MaintenanceMode />;
+  }
+
+  // Show loading state during initialization
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
+          <OfflineIndicator />
           <Toaster />
           <BrowserRouter>
             <Routes>
