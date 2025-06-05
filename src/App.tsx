@@ -7,8 +7,9 @@ import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { OfflineIndicator } from "@/components/common/OfflineIndicator";
 import { MaintenanceMode } from "@/components/common/MaintenanceMode";
-import { API_CONFIG, ENV } from "@/utils/environment";
+import { API_CONFIG, ENV, APP_CONFIG } from "@/utils/environment";
 import { logger } from "@/utils/logger";
+import { performDeploymentCheck } from "@/utils/deploymentCheck";
 import { useEffect, useState } from "react";
 
 // Import pages
@@ -69,7 +70,16 @@ function App() {
     logger.info('Application starting', {
       environment: ENV.isProduction ? 'production' : 'development',
       version: '1.0.0',
+      siteUrl: APP_CONFIG.siteUrl
     });
+
+    // Perform deployment readiness check
+    if (ENV.isProduction) {
+      const deploymentStatus = performDeploymentCheck();
+      if (!deploymentStatus.isReady) {
+        logger.error('Deployment readiness issues detected', deploymentStatus.issues);
+      }
+    }
 
     // Simulate initialization delay for production readiness
     const initTimeout = setTimeout(() => {
