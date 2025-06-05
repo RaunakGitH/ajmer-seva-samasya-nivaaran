@@ -12,6 +12,14 @@ import { DetailsStep } from '@/components/complaint/form-steps/DetailsStep';
 import { LocationStep } from '@/components/complaint/form-steps/LocationStep';
 import { ReviewStep } from '@/components/complaint/form-steps/ReviewStep';
 import { StepNavigation } from '@/components/complaint/StepNavigation';
+import { AuthGuard } from '@/components/auth/AuthGuard';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+
+// Import validation and utilities
+import { useFormValidation } from '@/hooks/useFormValidation';
+import { complaintSchema, validateFiles } from '@/utils/validation';
+import { uploadFiles, handleSupabaseError, checkStorageHealth } from '@/utils/supabaseHelpers';
+import { COMPLAINT_CATEGORIES } from '@/utils/constants';
 
 interface Category {
   id: string;
@@ -38,49 +46,10 @@ const SubmitComplaint = () => {
   const [category, setCategory] = useState<Category | null>(null);
   const [location, setLocation] = useState<Location | null>(null);
   const [files, setFiles] = useState<File[]>([]);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [isFileUploadDisabled, setIsFileUploadDisabled] = useState(false);
+  const [isStorageAvailable, setIsStorageAvailable] = useState(true);
 
-  // Check authentication on component mount
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) {
-        toast.error("Please log in to submit a complaint");
-        navigate("/auth", { state: { redirectTo: "/submit-complaint" } });
-      }
-    };
-    
-    checkAuth();
-  }, [navigate]);
-
-  // Check if storage bucket exists and is accessible
-  useEffect(() => {
-    const checkStorageConfig = async () => {
-      try {
-        // Try to list files in the bucket to verify it exists and is accessible
-        const { data, error } = await supabase.storage
-          .from('complaints-media')
-          .list('', { limit: 1 });
-        
-        if (error) {
-          console.warn("Storage bucket issue:", error.message);
-          setIsFileUploadDisabled(true);
-          toast.error("File upload temporarily unavailable", {
-            description: "You can still submit complaints without files."
-          });
-        } else {
-          console.log("Storage bucket is accessible");
-          setIsFileUploadDisabled(false);
-        }
-      } catch (error) {
-        console.warn("Storage configuration check failed:", error);
-        setIsFileUploadDisabled(true);
-      }
-    };
-    
-    checkStorageConfig();
-  }, []);
+  // Form validation
+  const { errors, validate, clearErrors } = useFormValidation(complaintSchema);
 
   // Define step titles and descriptions
   const steps = [
@@ -90,7 +59,28 @@ const SubmitComplaint = () => {
     { title: 'Review', description: 'Submit Complaint' }
   ];
 
+  // Check storage availability on mount
+  useEffect(() => {
+    const checkStorage = async () => {
+      const isAvailable = await checkStorageHealth('complaints-media');
+      setIsStorageAvailable(isAvailable);
+      
+      if (!isAvailable) {
+        toast.warning("File upload temporarily unavailable", {
+          description: "You can still submit complaints without attachments."
+        });
+      }
+    };
+    
+    checkStorage();
+  }, []);
+
   const handleFileSelection = useCallback((selectedFiles: File[]) => {
+    const validationError = validateFiles(selectedFiles);
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
     setFiles(selectedFiles);
   }, []);
 
@@ -99,38 +89,43 @@ const SubmitComplaint = () => {
   }, []);
 
   const handleCategorySelection = useCallback((selectedCategory: Category) => {
-    console.log("Category selected:", selectedCategory);
     setCategory(selectedCategory);
   }, []);
 
   const handleTitleChange = (value: string) => {
-    console.log("Title changed to:", value); 
     setTitle(value);
+    if (errors.title) clearErrors();
   };
 
   const nextStep = () => {
-    console.log("Next button clicked. Current step:", activeStep);
-    console.log("Current title:", title);
-    console.log("Current category:", category);
-    
-    if (activeStep === 0 && (!category || !title.trim())) {
-      console.log("Validation failed: Missing category or title");
-      setSubmitError('Please select a category and provide a title for your complaint');
-      return;
+    // Validate current step
+    if (activeStep === 0) {
+      const isValid = validate({
+        title: title.trim(),
+        category: category?.name || '',
+        description: description.trim(),
+        location_lat: location?.lat,
+        location_lng: location?.lng,
+      });
+      
+      if (!category || !title.trim()) {
+        toast.error('Please select a category and provide a title');
+        return;
+      }
+      
+      if (!isValid) return;
     }
     
     if (activeStep === 1 && !description.trim()) {
-      setSubmitError('Please provide a description of the issue');
+      toast.error('Please provide a description of the issue');
       return;
     }
     
     if (activeStep === 2 && !location) {
-      setSubmitError('Please specify the location of the issue');
+      toast.error('Please specify the location of the issue');
       return;
     }
     
-    setSubmitError(null);
-    console.log("Moving to next step");
     setActiveStep((prev) => Math.min(prev + 1, steps.length - 1));
   };
 
@@ -139,100 +134,72 @@ const SubmitComplaint = () => {
   };
 
   const handleStepClick = (index: number) => {
-    // Only allow going to completed steps or current step
     if (index <= activeStep) {
       setActiveStep(index);
     }
   };
 
   const handleSubmit = async () => {
+    if (!session?.user) {
+      toast.error("Please log in to submit your complaint");
+      navigate("/auth");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
-      setSubmitError(null);
 
-      // Double check session
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session?.user) {
-        setSubmitError("Please log in to submit your complaint.");
-        toast.error("Authentication required", { 
-          description: "Please log in to submit your complaint" 
-        });
+      // Final validation
+      const formData = {
+        title: title.trim(),
+        description: description.trim(),
+        category: category?.name || '',
+        location_lat: location?.lat,
+        location_lng: location?.lng,
+      };
+
+      if (!validate(formData)) {
+        toast.error("Please check your form data");
         setIsSubmitting(false);
-        navigate("/auth", { state: { redirectTo: "/submit-complaint" } });
         return;
       }
 
-      console.log("Starting submission process with user:", sessionData.session.user.id);
-      
-      // 1. Upload files if storage is available and files exist
+      // Upload files if available and storage is working
       let mediaUrls: string[] = [];
-      if (files.length > 0 && !isFileUploadDisabled) {
+      if (files.length > 0 && isStorageAvailable) {
         try {
-          console.log(`Uploading ${files.length} files`);
-          for (const file of files) {
-            const fileExt = file.name.split('.').pop();
-            const newFileName = `${sessionData.session.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
-            
-            console.log("Attempting to upload file:", newFileName);
-            
-            const { data: uploadData, error } = await supabase.storage
-              .from("complaints-media")
-              .upload(newFileName, file);
-
-            if (error) {
-              console.error("Upload error:", error);
-              throw new Error("Failed to upload attachment: " + error.message);
-            }
-            
-            console.log("File uploaded successfully:", uploadData?.path);
-            
-            // Build the public URL for the file
-            const { data: publicUrlData } = supabase.storage
-              .from("complaints-media")
-              .getPublicUrl(newFileName);
-
-            mediaUrls.push(publicUrlData.publicUrl);
+          mediaUrls = await uploadFiles(files, 'complaints-media', session.user.id);
+          if (mediaUrls.length !== files.length) {
+            toast.warning("Some files could not be uploaded");
           }
-        } catch (uploadError: any) {
-          console.error("File upload failed:", uploadError);
-          // Continue with submission without files rather than failing completely
-          toast.error("File upload failed", {
-            description: "Your complaint will be submitted without attachments"
-          });
+        } catch (error) {
+          console.error("File upload failed:", error);
+          toast.warning("Files could not be uploaded, submitting without attachments");
         }
       }
-      
-      console.log("Media URLs:", mediaUrls);
 
-      // 2. Store complaint in "complaints" table
-      const { data: insertData, error: insertError } = await supabase
+      // Submit complaint
+      const { error } = await supabase
         .from("complaints")
         .insert({
-          user_id: sessionData.session.user.id,
-          category: category?.name ?? "",
-          description,
-          location_lat: location?.lat ?? null,
-          location_lng: location?.lng ?? null,
+          user_id: session.user.id,
+          category: formData.category,
+          description: formData.description,
+          location_lat: formData.location_lat || null,
+          location_lng: formData.location_lng || null,
           media_urls: mediaUrls.length > 0 ? mediaUrls : null,
           status: "Pending",
-          // created_at and updated_at are handled by defaults
-        })
-        .select();
+        });
 
-      if (insertError) {
-        console.error("Insert error:", insertError);
-        throw new Error("Failed to submit complaint: " + insertError.message);
+      if (error) {
+        handleSupabaseError(error, 'complaint submission');
+        return;
       }
 
-      console.log("Complaint submitted successfully:", insertData);
       toast.success("Complaint submitted successfully!");
       navigate('/complaint-success');
     } catch (error: any) {
-      console.error('Error submitting complaint:', error);
-      toast.error("Submission Failed", {
-        description: error.message ?? 'There was an error submitting your complaint'
-      });
-      setSubmitError(error.message ?? 'There was an error submitting your complaint. Please try again.');
+      handleSupabaseError(error, 'complaint submission');
     } finally {
       setIsSubmitting(false);
     }
@@ -248,7 +215,7 @@ const SubmitComplaint = () => {
             setTitle={handleTitleChange}
             category={category}
             onCategorySelect={handleCategorySelection}
-            error={submitError}
+            error={errors.title || errors.category}
           />
         );
       case 1:
@@ -257,8 +224,8 @@ const SubmitComplaint = () => {
             description={description}
             setDescription={setDescription}
             handleFileSelection={handleFileSelection}
-            error={submitError}
-            isFileUploadDisabled={isFileUploadDisabled}
+            error={errors.description}
+            isFileUploadDisabled={!isStorageAvailable}
           />
         );
       case 2:
@@ -266,7 +233,7 @@ const SubmitComplaint = () => {
           <LocationStep
             location={location}
             onLocationSelected={handleLocationSelection}
-            error={submitError}
+            error={errors.location_lat || errors.location_lng}
           />
         );
       case 3:
@@ -279,7 +246,7 @@ const SubmitComplaint = () => {
             files={files}
             handleSubmit={handleSubmit}
             isSubmitting={isSubmitting}
-            error={submitError}
+            error={null}
           />
         );
       default:
@@ -288,22 +255,26 @@ const SubmitComplaint = () => {
   };
 
   return (
-    <ComplaintFormLayout
-      activeStep={activeStep}
-      steps={steps}
-      onStepClick={handleStepClick}
-    >
-      {renderStepContent()}
-      
-      {activeStep !== 3 && (
-        <StepNavigation
+    <AuthGuard requireAuth={true}>
+      <ErrorBoundary>
+        <ComplaintFormLayout
           activeStep={activeStep}
-          totalSteps={steps.length}
-          onNextClick={nextStep}
-          onPreviousClick={prevStep}
-        />
-      )}
-    </ComplaintFormLayout>
+          steps={steps}
+          onStepClick={handleStepClick}
+        >
+          {renderStepContent()}
+          
+          {activeStep !== 3 && (
+            <StepNavigation
+              activeStep={activeStep}
+              totalSteps={steps.length}
+              onNextClick={nextStep}
+              onPreviousClick={prevStep}
+            />
+          )}
+        </ComplaintFormLayout>
+      </ErrorBoundary>
+    </AuthGuard>
   );
 };
 
