@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { 
   Card, 
@@ -108,7 +109,7 @@ export default function AdminComplaints() {
                           asChild
                           className="mr-2"
                         >
-                          <Link to={`/complaint-details/${complaint.id}`}>
+                          <Link to={`/complaint/${complaint.id}`}>
                             View
                           </Link>
                         </Button>
