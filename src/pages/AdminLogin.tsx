@@ -6,10 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -18,8 +20,8 @@ const AdminLogin = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!username || !password) {
-      setError('Please enter both username and password');
+    if (!email || !password) {
+      setError('Please enter both email and password');
       return;
     }
     
@@ -27,23 +29,48 @@ const AdminLogin = () => {
     setIsLoading(true);
     
     try {
-      // In a real application, this would authenticate with Firebase
-      // For demo purposes, we'll just use a mock admin credential
-      if (username === 'admin' && password === 'admin123') {
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('AdminLogin: Attempting login with:', email);
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        console.error('AdminLogin: Auth error:', error);
+        setError(error.message);
+        return;
+      }
+
+      if (data.user) {
+        console.log('AdminLogin: Login successful, checking profile...');
         
-        // Set some local storage to indicate admin is logged in
-        localStorage.setItem('adminAuth', 'true');
-        
-        // Redirect to admin dashboard
-        navigate('/admin/dashboard');
-      } else {
-        setError('Invalid username or password');
+        // Check if user has admin role
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.user.id)
+          .single();
+
+        if (profileError) {
+          console.error('AdminLogin: Profile error:', profileError);
+          setError('Failed to load user profile');
+          return;
+        }
+
+        console.log('AdminLogin: User profile:', profile);
+
+        if (profile?.role === 'admin') {
+          toast.success('Welcome, Admin!');
+          navigate('/admin/dashboard');
+        } else {
+          setError('Access denied. Admin privileges required.');
+          await supabase.auth.signOut();
+        }
       }
     } catch (err) {
+      console.error('AdminLogin: Unexpected error:', err);
       setError('Authentication failed. Please try again.');
-      console.error('Login error:', err);
     } finally {
       setIsLoading(false);
     }
@@ -72,14 +99,15 @@ const AdminLogin = () => {
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="username" className="text-sm font-medium">Username</Label>
+                <Label htmlFor="email" className="text-sm font-medium">Email</Label>
                 <div className="relative group">
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4 transition-colors group-hover:text-purple-500" />
                   <Input
-                    id="username"
-                    placeholder="Enter your username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    id="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="pl-10 h-11 bg-gray-50/50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                   />
                 </div>
@@ -132,7 +160,7 @@ const AdminLogin = () => {
               </Button>
               
               <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6 font-medium">
-                <p>For demo: username = "admin", password = "admin123"</p>
+                <p>Please use your Supabase admin credentials</p>
               </div>
             </form>
           </CardContent>

@@ -16,7 +16,6 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import SubmitComplaint from "./pages/SubmitComplaint";
 import CitizenDashboard from "./pages/CitizenDashboard";
-import AdminDashboard from "./pages/AdminDashboard";
 import StaffDashboard from "./pages/StaffDashboard";
 import AdminLogin from "./pages/AdminLogin";
 import Complaints from "./pages/Complaints";
@@ -27,7 +26,8 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 
-// Import admin pages
+// Import admin pages with layout
+import { AdminLayout } from "./components/admin/AdminLayout";
 import AdminDashboardMain from "./pages/admin/AdminDashboard";
 import AdminComplaints from "./pages/admin/AdminComplaints";
 import AdminUsers from "./pages/admin/AdminUsers";
@@ -148,50 +148,61 @@ function App() {
                 </AuthGuard>
               } />
               
-              {/* Protected admin routes */}
-              <Route path="/admin-dashboard" element={
-                <AuthGuard requireAuth={true} allowedRoles={['admin']}>
-                  <AdminDashboard />
-                </AuthGuard>
-              } />
+              {/* Protected admin routes with layout */}
               <Route path="/admin/dashboard" element={
                 <AuthGuard requireAuth={true} allowedRoles={['admin']}>
-                  <AdminDashboardMain />
+                  <AdminLayout>
+                    <AdminDashboardMain />
+                  </AdminLayout>
                 </AuthGuard>
               } />
               <Route path="/admin/complaints" element={
                 <AuthGuard requireAuth={true} allowedRoles={['admin']}>
-                  <AdminComplaints />
+                  <AdminLayout>
+                    <AdminComplaints />
+                  </AdminLayout>
                 </AuthGuard>
               } />
               <Route path="/admin/users" element={
                 <AuthGuard requireAuth={true} allowedRoles={['admin']}>
-                  <AdminUsers />
+                  <AdminLayout>
+                    <AdminUsers />
+                  </AdminLayout>
                 </AuthGuard>
               } />
               <Route path="/admin/services" element={
                 <AuthGuard requireAuth={true} allowedRoles={['admin']}>
-                  <AdminServices />
+                  <AdminLayout>
+                    <AdminServices />
+                  </AdminLayout>
                 </AuthGuard>
               } />
               <Route path="/admin/projects" element={
                 <AuthGuard requireAuth={true} allowedRoles={['admin']}>
-                  <AdminProjects />
+                  <AdminLayout>
+                    <AdminProjects />
+                  </AdminLayout>
                 </AuthGuard>
               } />
               <Route path="/admin/notifications" element={
                 <AuthGuard requireAuth={true} allowedRoles={['admin']}>
-                  <AdminNotifications />
+                  <AdminLayout>
+                    <AdminNotifications />
+                  </AdminLayout>
                 </AuthGuard>
               } />
               <Route path="/admin/settings" element={
                 <AuthGuard requireAuth={true} allowedRoles={['admin']}>
-                  <AdminSettings />
+                  <AdminLayout>
+                    <AdminSettings />
+                  </AdminLayout>
                 </AuthGuard>
               } />
               <Route path="/admin/chat" element={
                 <AuthGuard requireAuth={true} allowedRoles={['admin']}>
-                  <AdminChat />
+                  <AdminLayout>
+                    <AdminChat />
+                  </AdminLayout>
                 </AuthGuard>
               } />
               
