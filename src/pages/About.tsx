@@ -82,7 +82,7 @@ const About = () => {
                   {/* Team Member 1 */}
                   <div className="text-center">
                     <div className="w-32 h-32 mx-auto bg-gray-200 dark:bg-gray-700 rounded-full mb-4"></div>
-                    <h3 className="font-bold text-lg">Rajiv Sharma</h3>
+                    <h3 className="font-bold text-lg">Raunak Gargay</h3>
                     <p className="text-sm text-primary">Founder & CEO</p>
                     <p className="mt-2 text-gray-600 dark:text-gray-400 text-sm">
                       Former civil servant with 15 years of experience in public administration.
@@ -92,7 +92,7 @@ const About = () => {
                   {/* Team Member 2 */}
                   <div className="text-center">
                     <div className="w-32 h-32 mx-auto bg-gray-200 dark:bg-gray-700 rounded-full mb-4"></div>
-                    <h3 className="font-bold text-lg">Priya Patel</h3>
+                    <h3 className="font-bold text-lg">Tarun Sharma</h3>
                     <p className="text-sm text-primary">Chief Technology Officer</p>
                     <p className="mt-2 text-gray-600 dark:text-gray-400 text-sm">
                       Tech innovator with expertise in developing civic tech solutions.
@@ -102,10 +102,26 @@ const About = () => {
                   {/* Team Member 3 */}
                   <div className="text-center">
                     <div className="w-32 h-32 mx-auto bg-gray-200 dark:bg-gray-700 rounded-full mb-4"></div>
-                    <h3 className="font-bold text-lg">Amit Kumar</h3>
+                    <h3 className="font-bold text-lg">Saumya Yadav</h3>
                     <p className="text-sm text-primary">Community Relations</p>
                     <p className="mt-2 text-gray-600 dark:text-gray-400 text-sm">
                       Community organizer with deep ties to local government and civic groups.
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-32 h-32 mx-auto bg-gray-200 dark:bg-gray-700 rounded-full mb-4"></div>
+                    <h3 className="font-bold text-lg">Shivank Dubey</h3>
+                    <p className="text-sm text-primary">Lorem, ipsum dolor.</p>
+                    <p className="mt-2 text-gray-600 dark:text-gray-400 text-sm">
+                      Lorem ipsum dolor sit amet consectetur.
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-32 h-32 mx-auto bg-gray-200 dark:bg-gray-700 rounded-full mb-4"></div>
+                    <h3 className="font-bold text-lg">Yash Nagwal</h3>
+                    <p className="text-sm text-primary">Lorem, ipsum dolor.</p>
+                    <p className="mt-2 text-gray-600 dark:text-gray-400 text-sm">
+                      Lorem ipsum dolor sit amet consectetur adipisicing.
                     </p>
                   </div>
                 </div>
