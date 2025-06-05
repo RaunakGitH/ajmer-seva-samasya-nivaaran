@@ -35,31 +35,38 @@ export function SimplifiedComplaintForm() {
   ];
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('SimplifiedComplaintForm: Title changed:', e.target.value);
     setTitle(e.target.value);
   };
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    console.log('SimplifiedComplaintForm: Description changed:', e.target.value.length);
     setDescription(e.target.value);
   };
 
   const handleCategoryChange = (value: string) => {
+    console.log('SimplifiedComplaintForm: Category changed:', value);
     setCategoryId(value);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('SimplifiedComplaintForm: Submit started');
     
     if (!title.trim()) {
+      console.log('SimplifiedComplaintForm: Validation failed - no title');
       setError('Please provide a title for your complaint');
       return;
     }
     
     if (!description.trim()) {
+      console.log('SimplifiedComplaintForm: Validation failed - no description');
       setError('Please provide a description of the issue');
       return;
     }
     
     if (!categoryId) {
+      console.log('SimplifiedComplaintForm: Validation failed - no category');
       setError('Please select a category for your complaint');
       return;
     }
@@ -67,10 +74,12 @@ export function SimplifiedComplaintForm() {
     try {
       setIsSubmitting(true);
       setError(null);
+      console.log('SimplifiedComplaintForm: Checking authentication');
       
       // Check if user is logged in
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData.session?.user) {
+        console.log('SimplifiedComplaintForm: No session found');
         setError("Please log in to submit your complaint.");
         toast.error("Authentication required", { 
           description: "Please log in to submit your complaint" 
@@ -83,21 +92,25 @@ export function SimplifiedComplaintForm() {
       // Get the selected category name
       const selectedCategory = categories.find(cat => cat.id === categoryId);
       
+      console.log('SimplifiedComplaintForm: Submitting to database');
+      
       // Submit complaint to Supabase
       const { data, error: insertError } = await supabase
         .from("complaints")
         .insert({
           user_id: sessionData.session.user.id,
           category: selectedCategory?.name || categoryId,
-          description,
+          description: description.trim(),
           status: "Pending",
         })
         .select();
 
       if (insertError) {
+        console.error('SimplifiedComplaintForm: Database error:', insertError);
         throw new Error("Failed to submit complaint: " + insertError.message);
       }
 
+      console.log('SimplifiedComplaintForm: Submission successful:', data);
       toast.success("Complaint submitted successfully!");
       setTitle('');
       setDescription('');
@@ -106,7 +119,7 @@ export function SimplifiedComplaintForm() {
       // Redirect to dashboard or detailed view
       navigate('/citizen-dashboard');
     } catch (error: any) {
-      console.error('Error submitting complaint:', error);
+      console.error('SimplifiedComplaintForm: Submission error:', error);
       toast.error("Submission Failed", {
         description: error.message ?? 'There was an error submitting your complaint'
       });

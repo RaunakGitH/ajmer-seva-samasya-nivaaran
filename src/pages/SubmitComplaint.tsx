@@ -59,10 +59,30 @@ const SubmitComplaint = () => {
     { title: 'Review', description: 'Submit Complaint' }
   ];
 
+  // Debug logging
+  useEffect(() => {
+    console.log('SubmitComplaint: Component mounted');
+    console.log('SubmitComplaint: Session state:', session ? 'authenticated' : 'not authenticated');
+  }, [session]);
+
+  useEffect(() => {
+    console.log('SubmitComplaint: Form state updated:', {
+      title: title.length,
+      description: description.length,
+      category: category?.name || 'none',
+      location: location ? 'set' : 'not set',
+      files: files.length,
+      activeStep,
+      errors
+    });
+  }, [title, description, category, location, files, activeStep, errors]);
+
   // Check storage availability on mount
   useEffect(() => {
     const checkStorage = async () => {
+      console.log('SubmitComplaint: Checking storage health');
       const isAvailable = await checkStorageHealth('complaints-media');
+      console.log('SubmitComplaint: Storage available:', isAvailable);
       setIsStorageAvailable(isAvailable);
       
       if (!isAvailable) {
@@ -76,8 +96,10 @@ const SubmitComplaint = () => {
   }, []);
 
   const handleFileSelection = useCallback((selectedFiles: File[]) => {
+    console.log('SubmitComplaint: File selection:', selectedFiles.length);
     const validationError = validateFiles(selectedFiles);
     if (validationError) {
+      console.log('SubmitComplaint: File validation error:', validationError);
       toast.error(validationError);
       return;
     }
@@ -85,120 +107,149 @@ const SubmitComplaint = () => {
   }, []);
 
   const handleLocationSelection = useCallback((selectedLocation: Location) => {
+    console.log('SubmitComplaint: Location selected:', selectedLocation);
     setLocation(selectedLocation);
   }, []);
 
   const handleCategorySelection = useCallback((selectedCategory: Category) => {
+    console.log('SubmitComplaint: Category selected:', selectedCategory.name);
     setCategory(selectedCategory);
   }, []);
 
   const handleTitleChange = (value: string) => {
+    console.log('SubmitComplaint: Title changed:', value.length);
     setTitle(value);
     if (errors.title) clearErrors();
   };
 
   const nextStep = () => {
-    // Validate current step
+    console.log('SubmitComplaint: Next step clicked, current step:', activeStep);
+    
+    // Simplified validation for step progression
     if (activeStep === 0) {
-      const isValid = validate({
-        title: title.trim(),
-        category: category?.name || '',
-        description: description.trim(),
-        location_lat: location?.lat,
-        location_lng: location?.lng,
-      });
-      
-      if (!category || !title.trim()) {
-        toast.error('Please select a category and provide a title');
+      if (!category) {
+        console.log('SubmitComplaint: Step 0 validation failed - no category');
+        toast.error('Please select a category');
         return;
       }
-      
-      if (!isValid) return;
+      if (!title.trim()) {
+        console.log('SubmitComplaint: Step 0 validation failed - no title');
+        toast.error('Please provide a title');
+        return;
+      }
     }
     
-    if (activeStep === 1 && !description.trim()) {
-      toast.error('Please provide a description of the issue');
-      return;
+    if (activeStep === 1) {
+      if (!description.trim()) {
+        console.log('SubmitComplaint: Step 1 validation failed - no description');
+        toast.error('Please provide a description');
+        return;
+      }
     }
     
-    if (activeStep === 2 && !location) {
-      toast.error('Please specify the location of the issue');
-      return;
+    if (activeStep === 2) {
+      if (!location) {
+        console.log('SubmitComplaint: Step 2 validation failed - no location');
+        toast.error('Please specify the location');
+        return;
+      }
     }
     
+    console.log('SubmitComplaint: Moving to next step');
     setActiveStep((prev) => Math.min(prev + 1, steps.length - 1));
   };
 
   const prevStep = () => {
+    console.log('SubmitComplaint: Previous step clicked');
     setActiveStep((prev) => Math.max(prev - 1, 0));
   };
 
   const handleStepClick = (index: number) => {
+    console.log('SubmitComplaint: Step clicked:', index);
     if (index <= activeStep) {
       setActiveStep(index);
     }
   };
 
   const handleSubmit = async () => {
+    console.log('SubmitComplaint: Submit started');
+    
     if (!session?.user) {
+      console.log('SubmitComplaint: No session, redirecting to auth');
       toast.error("Please log in to submit your complaint");
       navigate("/auth");
       return;
     }
 
+    // Basic validation
+    if (!category) {
+      console.log('SubmitComplaint: Submit failed - no category');
+      toast.error("Please select a category");
+      return;
+    }
+
+    if (!title.trim()) {
+      console.log('SubmitComplaint: Submit failed - no title');
+      toast.error("Please provide a title");
+      return;
+    }
+
+    if (!description.trim()) {
+      console.log('SubmitComplaint: Submit failed - no description');
+      toast.error("Please provide a description");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
-
-      // Final validation
-      const formData = {
-        title: title.trim(),
-        description: description.trim(),
-        category: category?.name || '',
-        location_lat: location?.lat,
-        location_lng: location?.lng,
-      };
-
-      if (!validate(formData)) {
-        toast.error("Please check your form data");
-        setIsSubmitting(false);
-        return;
-      }
+      console.log('SubmitComplaint: Starting submission process');
 
       // Upload files if available and storage is working
       let mediaUrls: string[] = [];
       if (files.length > 0 && isStorageAvailable) {
         try {
+          console.log('SubmitComplaint: Uploading files:', files.length);
           mediaUrls = await uploadFiles(files, 'complaints-media', session.user.id);
+          console.log('SubmitComplaint: Files uploaded:', mediaUrls.length);
           if (mediaUrls.length !== files.length) {
             toast.warning("Some files could not be uploaded");
           }
         } catch (error) {
-          console.error("File upload failed:", error);
+          console.error("SubmitComplaint: File upload failed:", error);
           toast.warning("Files could not be uploaded, submitting without attachments");
         }
       }
 
+      // Prepare complaint data
+      const complaintData = {
+        user_id: session.user.id,
+        category: category.name,
+        description: description.trim(),
+        location_lat: location?.lat || null,
+        location_lng: location?.lng || null,
+        media_urls: mediaUrls.length > 0 ? mediaUrls : null,
+        status: "Pending",
+      };
+
+      console.log('SubmitComplaint: Submitting to database:', complaintData);
+
       // Submit complaint
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("complaints")
-        .insert({
-          user_id: session.user.id,
-          category: formData.category,
-          description: formData.description,
-          location_lat: formData.location_lat || null,
-          location_lng: formData.location_lng || null,
-          media_urls: mediaUrls.length > 0 ? mediaUrls : null,
-          status: "Pending",
-        });
+        .insert(complaintData)
+        .select();
 
       if (error) {
+        console.error('SubmitComplaint: Database error:', error);
         handleSupabaseError(error, 'complaint submission');
         return;
       }
 
+      console.log('SubmitComplaint: Submission successful:', data);
       toast.success("Complaint submitted successfully!");
-      navigate('/complaint-success');
+      navigate('/citizen-dashboard');
     } catch (error: any) {
+      console.error('SubmitComplaint: Submission error:', error);
       handleSupabaseError(error, 'complaint submission');
     } finally {
       setIsSubmitting(false);
