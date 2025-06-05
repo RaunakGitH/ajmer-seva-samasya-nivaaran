@@ -41,7 +41,7 @@ class PerformanceMonitor {
         const metrics = {
           domContentLoaded: navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
           loadComplete: navigation.loadEventEnd - navigation.loadEventStart,
-          totalPageLoad: navigation.loadEventEnd - navigation.navigationStart,
+          totalPageLoad: navigation.loadEventEnd - navigation.fetchStart,
         };
         
         Object.entries(metrics).forEach(([key, value]) => {
