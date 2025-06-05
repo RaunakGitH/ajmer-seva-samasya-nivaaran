@@ -220,7 +220,7 @@ const SubmitComplaint = () => {
         }
       }
 
-      // Prepare complaint data
+      // Prepare complaint data with proper typing
       const complaintData = {
         user_id: session.user.id,
         category: category.name,
@@ -228,7 +228,7 @@ const SubmitComplaint = () => {
         location_lat: location?.lat || null,
         location_lng: location?.lng || null,
         media_urls: mediaUrls.length > 0 ? mediaUrls : null,
-        status: "Pending",
+        status: "Pending" as const, // Fix TypeScript error by using const assertion
       };
 
       console.log('SubmitComplaint: Submitting to database:', complaintData);
