@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -22,13 +23,30 @@ export default function Auth() {
   const [error, setError] = useState("");
   const { session, profile, loading: loadingProfile } = useSupabaseSession();
 
-  // If logged in, redirect to dashboard based on role
-  if (session && !loadingProfile) {
-    let path = "/citizen-dashboard";
-    if (profile?.role === "admin") path = "/admin-dashboard";
-    if (profile?.role === "staff") path = "/staff-dashboard";
-    navigate(path, { replace: true });
-    return null;
+  // Redirect logic when user is authenticated
+  useEffect(() => {
+    if (session && profile && !loadingProfile) {
+      console.log('Auth: Redirecting authenticated user with role:', profile.role);
+      let path = "/citizen-dashboard";
+      
+      if (profile.role === "admin") {
+        path = "/admin/dashboard";
+      } else if (profile.role === "staff") {
+        path = "/staff-dashboard";
+      }
+      
+      console.log('Auth: Redirecting to:', path);
+      navigate(path, { replace: true });
+    }
+  }, [session, profile, loadingProfile, navigate]);
+
+  // Show loading while checking auth state
+  if (loadingProfile && session) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-100">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
   async function signInWithGoogle() {

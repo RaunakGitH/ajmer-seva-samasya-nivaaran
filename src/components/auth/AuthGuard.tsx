@@ -45,7 +45,15 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
 
     if (allowedRoles.length > 0 && profile && !allowedRoles.includes(profile.role)) {
       console.log('AuthGuard: Role check failed. User role:', profile.role, 'Required roles:', allowedRoles);
-      navigate('/', { replace: true });
+      
+      // Redirect based on user's actual role
+      if (profile.role === 'admin') {
+        navigate('/admin/dashboard', { replace: true });
+      } else if (profile.role === 'staff') {
+        navigate('/staff-dashboard', { replace: true });
+      } else {
+        navigate('/citizen-dashboard', { replace: true });
+      }
       return;
     }
   }, [session, profile, loading, requireAuth, allowedRoles, navigate, redirectTo]);
